@@ -6,7 +6,6 @@ import (
 	database "forum/database"
 	"html/template"
 	"net/http"
-	"regexp"
 	"strings"
 	"time"
 
@@ -17,7 +16,7 @@ func ServeRegister(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodGet {
 
-		tmpl, err := template.ParseFiles("static/templates/register.html")
+		tmpl, err := template.ParseFiles("static/register.html")
 		if err != nil {
 			handleError.ServeError(w, r, 500)
 			return
@@ -42,7 +41,7 @@ func ServeRegister(w http.ResponseWriter, r *http.Request) {
 		password := strings.TrimSpace(r.FormValue("password"))
 		confirmPassword := strings.TrimSpace(r.FormValue("confirm_password"))
 
-		tmpl, err := template.ParseFiles("static/templates/register.html")
+		tmpl, err := template.ParseFiles("static/register.html")
 		if err != nil {
 			handleError.ServeError(w, r, http.StatusInternalServerError)
 			return
@@ -55,16 +54,8 @@ func ServeRegister(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-		re := regexp.MustCompile(pattern)
-		if !re.MatchString(email) { // If the email doesn't match the regex
-			errMsg := "Enter a valid email."
-			tmpl.Execute(w, map[string]interface{}{
-				"Error": errMsg,
-			})
-			return
-		}
 
+		
 		if password != confirmPassword {
 			errMsg := "Passwords do not match."
 			tmpl.Execute(w, map[string]interface{}{
@@ -73,18 +64,20 @@ func ServeRegister(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 		if err != nil {
 			http.Error(w, "Error securing password", http.StatusInternalServerError)
 			return
 		}
 
+	
 		_, err = database.DBInstance.DB.Exec(
 			"INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
 			username, email, hashedPassword,
 		)
 		if err != nil {
-
+			
 			if err.Error() == "UNIQUE constraint failed: users.username" || err.Error() == "UNIQUE constraint failed: users.email" {
 				errMsg := "Username or email already exists."
 				tmpl.Execute(w, map[string]interface{}{

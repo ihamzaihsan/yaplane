@@ -44,7 +44,7 @@ func ServeIndividualPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 
-	tmpl, err := template.ParseFiles("static/templates/post.html")
+	tmpl, err := template.ParseFiles("static/post.html")
 	if err != nil {
 		handleError.ServeError(w, r, http.StatusInternalServerError)
 		return

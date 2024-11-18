@@ -1,5 +1,4 @@
 package Forum
-
 import (
 	"database/sql"
 	"errors"
@@ -9,6 +8,7 @@ import (
 )
 
 func StoreSession(sessionToken, email string) error {
+
 	tx, err := DBInstance.DB.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %v", err)
@@ -19,7 +19,7 @@ func StoreSession(sessionToken, email string) error {
 	if err != nil {
 		return fmt.Errorf("failed to delete existing session: %v", err)
 	}
-
+	
 	expirationTime := time.Now().Add(24 * time.Hour)
 	_, err = tx.Exec(
 		"INSERT INTO sessions (session_token, email, expires_at) VALUES (?, ?, ?)",
@@ -28,20 +28,34 @@ func StoreSession(sessionToken, email string) error {
 	if err != nil {
 		return fmt.Errorf("failed to store session: %v", err)
 	}
-
+	
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("failed to commit transaction: %v", err)
 	}
 	return nil
 }
 
+func GetUserBySessionToken(sessionToken string) (string, bool) {
+	var email string
+	err := DBInstance.DB.QueryRow(
+		"SELECT email FROM sessions WHERE session_token = ?",
+		sessionToken,
+	).Scan(&email)
+	if err != nil {
+	
+		return "", false
+	}
+
+	return email, true
+}
+
 func GetEmailFromSession(token string) (string, error) {
 	var email string
 	err := DBInstance.DB.QueryRow("SELECT email FROM sessions WHERE session_token = ?", token).Scan(&email)
 	if err != nil {
-		return "", err
+		return "", err 
 	}
-	return email, nil
+	return email, nil 
 }
 
 func GetUserBySession(sessionToken string) (*models.User, error) {

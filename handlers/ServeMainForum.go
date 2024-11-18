@@ -62,7 +62,7 @@ func ServeMainForum(w http.ResponseWriter, r *http.Request) {
 		"ViewTitle":  viewTitle,
 	}
 
-	tmpl, err := template.ParseFiles("static/templates/index.html")
+	tmpl, err := template.ParseFiles("static/index.html")
 	if err != nil {
 		handleError.ServeError(w, r, http.StatusInternalServerError)
 		return

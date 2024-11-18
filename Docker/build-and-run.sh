@@ -1,7 +1,7 @@
 	#!/bin/bash
 
 # Build the Docker image
-docker image build -t forum -f Docker/Dockerfile .
+docker image build -t forum .
 
 # Run the Docker container
 docker container run -p 8080:8080 --detach --name forum forum

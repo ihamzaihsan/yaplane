@@ -13,7 +13,7 @@ func ServeLogin(w http.ResponseWriter, r *http.Request) {
 	
 	if r.Method == http.MethodGet {
 		
-		tmpl, err := template.ParseFiles("static/templates/login.html")
+		tmpl, err := template.ParseFiles("static/login.html")
 		if err != nil {
 			http.Error(w, "Error loading login page", http.StatusInternalServerError)
 			return

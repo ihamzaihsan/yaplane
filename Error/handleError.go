@@ -30,7 +30,7 @@ func ServeError(w http.ResponseWriter, r *http.Request, statusCode int) {
 	}
 
 	w.WriteHeader(statusCode)
-	tmpl, err := template.ParseFiles("static/templates/error.html")
+	tmpl, err := template.ParseFiles("static/error.html")
 	if err != nil {
 		log.Printf("Template parse error: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

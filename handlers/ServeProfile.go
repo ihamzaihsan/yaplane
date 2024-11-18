@@ -35,7 +35,7 @@ func ServeProfile(w http.ResponseWriter, r *http.Request) {
 		IsLoggedIn:   true, 
 	}
 
-	tmpl, err := template.ParseFiles("static/templates/profile.html")
+	tmpl, err := template.ParseFiles("static/profile.html")
 	if err != nil {
 		log.Printf("Error parsing template: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
