@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Forum</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="profile-container fade-in">
+            <h2><i class="fas fa-user-circle"></i> User Profile</h2>
+            <div class="profile-info">
+                <p><i class="fas fa-user"></i> <strong>Username:</strong> <span id="username">{{.Username}}</span></p>
+                <p><i class="fas fa-envelope"></i> <strong>Email:</strong> <span id="email">{{.Email}}</span></p>
+                <p><i class="fas fa-calendar-alt"></i> <strong>Join Date:</strong> <span id="joinDate">{{.JoinDate}}</span></p>
+            </div>
+            <div class="profile-stats">
+                <h3><i class="fas fa-chart-bar"></i> Activity</h3>
+                <p><i class="fas fa-pen"></i> <strong>Posts:</strong> <span id="postCount">{{.PostCount}}</span></p>
+                <p><i class="fas fa-comment"></i> <strong>Comments:</strong> <span id="commentCount">{{.CommentCount}}</span></p>
+            </div>
+
+            <div class="logout-container" style="margin-top: 20px;">
+                <form action="/logout" method="post">
+                    <button type="submit"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                </form>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

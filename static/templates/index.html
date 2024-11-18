@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css"> 
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum - Home</title>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+
+                {{if .isLoggedIn}}
+                <div>
+                
+                    <a href="/profile" class="profile-icon" aria-label="Profile">
+                        <div class="menu-icon" id="menu-icon">
+                            <img src="/static/images/profile_icon.png" alt="Profile Icon" class="profile-image">
+                        </div>
+                    </a>
+                    
+                
+               
+                    <a href="/posts/create" class="create-post-icon" aria-label="Create Post">
+                        <div class="menu-icon" id="create-post-icon">
+                            <i class="fas fa-plus-square"></i>
+                        </div>
+                    </a>
+        
+            </div>
+                {{else}}
+                <li><a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                <li><a href="/register"><i class="fas fa-user-plus"></i> Register</a></li>
+                {{end}}
+            </ul>
+        </nav>
+    </header>
+
+    <div class="layout-container">
+        <aside class="vertical-sidebar">
+            <nav>
+                <ul>
+                    <li>
+                        
+                        <a><i class="fas fa-list"></i><b>Categories</b></a>
+                        <div class="category-filter">
+                            <form action="/" method="GET">
+                                <div class="checkbox-group">
+                                    <div class="checkbox-column">
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" id="tech" name="categories" value="technology">
+                                            <label for="tech">Technology</label>
+                                        </div>
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" id="science" name="categories" value="science">
+                                            <label for="science">Science</label>
+                                        </div>
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" id="art" name="categories" value="art">
+                                            <label for="art">Art</label>
+                                        </div>
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" id="sport" name="categories" value="sport">
+                                            <label for="sport">Sport</label>
+                                        </div>
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" id="games" name="categories" value="games">
+                                            <label for="games">Games</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="button-group">
+                                    <button type="submit" class="filter-button" onclick="return validateForm()">Apply Filters</button>
+                                    <button type="button" class="filter-button" onclick="window.location.href='/'">Clear Filters</button>
+                                    <script>
+                                        function validateForm() {
+                                            const checkboxes = document.querySelectorAll('input[name="categories"]:checked');
+                                            if (checkboxes.length === 0) {
+                                                window.location.href = '/';
+                                                return false;
+                                            }
+                                            return true;
+                                        }
+                                        </script>
+                                        
+                                </div>                                
+                            </form>
+                        </div>
+                     
+                    </li>
+                    {{if .isLoggedIn}}
+                    <li>
+                        <a href="/post/myPosts" class="button"><i class="fas fa-user"></i> My Posts</a>
+                    </li>
+                    <li>
+                        <a href="/post/likedPosts" class="button"><i class="fas fa-thumbs-up"></i> Liked Posts</a>
+                    </li>
+                    <li>
+                        <form action="/logout" method="post" style="display:inline;">
+                            <button type="submit" class="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                        </form>
+                    </li>
+                    {{end}}
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            {{if not .isLoggedIn}}
+            <section id="welcome" class="fade-in">
+                <h1>Welcome to the Forum</h1>
+                <p>Connect with other users, share knowledge, and discuss various topics!</p>
+            </section>
+            {{end}}
+              <section id="latest-posts" class="fade-in">
+                <h2><i class="fas fa-clock"></i> {{if .ViewTitle}}{{.ViewTitle}}{{else}}Latest Posts{{end}}</h2>
+                  {{range .Posts}}
+                  <article class="post-card" onclick="window.location.href='/post/{{.ID}}'">
+                      <div class="post-header">
+                          <h3><a href="/post/{{.ID}}">{{.Title}}</a></h3>
+                          <div class="post-meta">
+                              <span class="author"><i class="fas fa-user"></i> {{.Username}}</span>
+                              <span class="categories">
+                                  <i class="fas fa-tags"></i>
+                                  {{range $index, $category := .Categories}}
+                                      {{if $index}}, {{end}}{{$category}}
+                                  {{end}}
+                              </span>
+                          </div>
+                      </div>
+
+                      <div class="post-content">
+                          {{if .ImagePath}}
+                          <div class="post-image">
+                            <img src="/static/{{.ImagePath}}" alt="Post image">
+
+                          {{end}}
+                          <p class="post-text">{{.Content}}</p>
+                      </div>
+
+                      <div class="post-footer">
+                          <div class="post-stats">
+                              <span class="likes"><i class="fas fa-thumbs-up"></i> {{.Likes}}</span>
+                              <span class="dislikes"><i class="fas fa-thumbs-down"></i> {{.Dislikes}}</span>
+                          </div>
+                      </div>
+                  </article>
+                  {{else}}
+                  <p class="NoPost">No posts available yet!</p>
+                  {{end}}
+              </section>
+          </main>
+    </div>
+</body>
+
+</html>
