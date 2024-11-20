@@ -4,21 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/static/style.css"> 
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forum - Home</title>
+    <title>Yaplane Community: Full Stack Discussion Forum</title>
 </head>
 
 <body>
+    <a class="skip-link" href="#content">Skip to content</a>
     <header>
-        <nav>
+        <a href="/" class="brand" aria-label="Yaplane Community home"><span class="brand-mark" aria-hidden="true">y<span>&bull;</span></span>yaplane<span class="brand-period">.</span></a>
+        <nav aria-label="Main navigation">
             <ul>
                 <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
 
                 {{if .isLoggedIn}}
-                <div>
+                <li class="header-member-links">
                 
                     <a href="/profile" class="profile-icon" aria-label="Profile">
                         <div class="menu-icon" id="menu-icon">
@@ -29,12 +30,12 @@
                 
                
                     <a href="/posts/create" class="create-post-icon" aria-label="Create Post">
-                        <div class="menu-icon" id="create-post-icon">
-                            <i class="fas fa-plus-square"></i>
-                        </div>
+                        <span class="menu-icon" id="create-post-icon">
+                            <i class="fas fa-plus-square" aria-hidden="true"></i> New discussion
+                        </span>
                     </a>
         
-            </div>
+                </li>
                 {{else}}
                 <li><a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a></li>
                 <li><a href="/register"><i class="fas fa-user-plus"></i> Register</a></li>
@@ -44,12 +45,13 @@
     </header>
 
     <div class="layout-container">
-        <aside class="vertical-sidebar">
+        <aside class="vertical-sidebar" aria-label="Community navigation">
+            <div class="workspace-label"><i class="fas fa-layer-group" aria-hidden="true"></i><div>The common room<small>Your everyday community</small></div></div>
             <nav>
                 <ul>
                     <li>
                         
-                        <a><i class="fas fa-list"></i><b>Categories</b></a>
+                        <h2 class="eyebrow sidebar-section-label">EXPLORE TOPICS</h2>
                         <div class="category-filter">
                             <form action="/" method="GET">
                                 <div class="checkbox-group">
@@ -77,8 +79,8 @@
                                     </div>
                                 </div>
                                 <div class="button-group">
-                                    <button type="submit" class="filter-button" onclick="return validateForm()">Apply Filters</button>
-                                    <button type="button" class="filter-button" onclick="window.location.href='/'">Clear Filters</button>
+                                    <button type="submit" class="filter-button" onclick="return validateForm()">Apply</button>
+                                    <button type="button" class="filter-button" onclick="window.location.href='/'">Clear</button>
                                     <script>
                                         function validateForm() {
                                             const checkboxes = document.querySelectorAll('input[name="categories"]:checked');
@@ -110,17 +112,17 @@
                     {{end}}
                 </ul>
             </nav>
+            <div class="sidebar-note"><span class="tiny-star" aria-hidden="true">&#10035;</span><p>Good conversations<br>start with curiosity.</p><span>Bring yours.</span></div>
         </aside>
 
-        <main class="main-content">
-            {{if not .isLoggedIn}}
+        <main id="content" tabindex="-1" class="main-content">
             <section id="welcome" class="fade-in">
-                <h1>Welcome to the Forum</h1>
-                <p>Connect with other users, share knowledge, and discuss various topics!</p>
+                <span class="eyebrow">THE COMMON ROOM</span>
+                <h1>A little space for big ideas.</h1>
+                <p>Share perspectives. Ask questions. Find your next conversation.</p>
             </section>
-            {{end}}
               <section id="latest-posts" class="fade-in">
-                <h2><i class="fas fa-clock"></i> {{if .ViewTitle}}{{.ViewTitle}}{{else}}Latest Posts{{end}}</h2>
+                <div class="feed-heading"><h2>{{if .ViewTitle}}{{.ViewTitle}}{{else}}Latest Posts{{end}}</h2><span>A space to stay curious.</span></div>
                   {{range .Posts}}
                   <article class="post-card" onclick="window.location.href='/post/{{.ID}}'">
                       <div class="post-header">
@@ -139,8 +141,8 @@
                       <div class="post-content">
                           {{if .ImagePath}}
                           <div class="post-image">
-                            <img src="/static/{{.ImagePath}}" alt="Post image">
-
+                            <img src="/static/{{.ImagePath}}" alt="Image attached to {{.Title}}" loading="lazy">
+                          </div>
                           {{end}}
                           <p class="post-text">{{.Content}}</p>
                       </div>
@@ -153,10 +155,14 @@
                       </div>
                   </article>
                   {{else}}
-                  <p class="NoPost">No posts available yet!</p>
+                  <p class="NoPost">No discussions yet. Be the first to start one.</p>
                   {{end}}
               </section>
           </main>
+          <aside class="right-sidebar" aria-label="About the community">
+              <section class="community-note"><span class="eyebrow">OUR LITTLE CORNER</span><h2>Different minds.<br>Common ground.</h2><p>Share what you know. Ask what you don&rsquo;t. Make someone&rsquo;s day a little more interesting.</p><div class="note-footer">Stay curious. Stay kind.</div></section>
+              <p class="right-footer">Made for meaningful exchanges.<br>Yaplane Community &middot; Discussion forum</p>
+          </aside>
     </div>
 </body>
 
