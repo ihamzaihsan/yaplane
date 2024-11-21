@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/static/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <script src="/static/script.js"></script>
-    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
-    <title>Create Post</title>
+    <title>New discussion | Yaplane Community</title>
 </head>
 <body class="createPost-style">
+    <a class="skip-link" href="#content">Skip to content</a>
     <header>
-        <nav>
+        <a href="/" class="brand" aria-label="Yaplane Community home"><span class="brand-mark" aria-hidden="true">y<span>&bull;</span></span>yaplane<span class="brand-period">.</span></a>
+        <nav aria-label="Main navigation">
             <ul>
                 <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
                 <li><a href="/profile"><i class="fas fa-user"></i> Profile</a></li>
@@ -20,31 +20,32 @@
         </nav>
     </header>
 
-    <main class="createPost-container">
+    <main id="content" tabindex="-1" class="createPost-container">
+        <div class="page-heading"><span class="eyebrow">BRING YOUR PERSPECTIVE</span><h1>Start a discussion.</h1><p>A question, an idea, or something worth sharing.</p></div>
         <div class="post-container">
-            <h2 class="createPost-title">Create a New Post</h2>
+            <h2 class="createPost-title">What&rsquo;s on your mind?</h2>
             <form action="/posts/create" method="post" enctype="multipart/form-data" class="createPost-form">
                 {{if .Error}}
-                 <div class="error-message">{{.Error}}</div>
+                 <div class="error-message" role="alert">{{.Error}}</div>
                 {{end}}            
                 <div class="input-group">
-                    <label for="title">Title:</label>
+                    <label for="postTitle">Title:</label>
                     <input type="text" id="postTitle" name="title" placeholder="Title" required>
                 </div>
                 
                 <div class="input-group">
-                    <label for="content">Content:</label>
+                    <label for="postContent">Content:</label>
                     <textarea id="postContent" name="content" rows="8" placeholder="Text" required></textarea>
                 </div>
 
                 <div class="input-group">
                     <label for="image">Image (optional):</label>
                     <input type="file" id="image" name="image" accept="image/*">
-                    <div class="image-preview" id="imagePreview"></div>
+                    <p class="form-hint">Optional image. Total submission limit: 20 MB.</p>
                 </div>
 
-                <div class="input-group">
-                    <label for="categories">Categories:</label>
+                <fieldset class="form-group">
+                    <legend>Choose topics</legend>
                     <div class="category-options">
                         <label><input type="checkbox" name="category_ids[]" value="1"> Science</label>
                         <label><input type="checkbox" name="category_ids[]" value="2"> Technology</label>
@@ -52,15 +53,14 @@
                         <label><input type="checkbox" name="category_ids[]" value="4"> Sport</label>
                         <label><input type="checkbox" name="category_ids[]" value="5"> Games</label>
                     </div>
-                </div>
+                </fieldset>
                 
-                <button type="submit" class="createPost-button">Post</button>
+                <button type="submit" class="createPost-button">Publish discussion</button>
             </form>
         </div>
     </main>
 
   
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
 </body>
 </html>

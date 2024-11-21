@@ -3,77 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error {{.ErrorCode}} - {{.ErrorMessage}}</title>
+    <title>Error {{.ErrorCode}} | Yaplane Community</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/static/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
-    <style>
-        :root {
-            --primary-color: #3498db;
-            --secondary-color: #2c3e50;
-            --accent-color: #e74c3c;
-        }
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-        }
-        .error-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            text-align: center;
-            padding: 0 20px;
-        }
-        .error-image {
-            width: 150px;
-            margin-bottom: 30px;
-            animation: pulse 2s infinite;
-        }
-        .error-code {
-            font-size: 96px;
-            color: var(--accent-color);
-            margin: 0 0 10px;
-            font-weight: 700;
-        }
-        .error-message {
-            font-size: 28px;
-            color: var(--secondary-color);
-            margin-bottom: 40px;
-            font-weight: 300;
-        }
-        .btn-home {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: 500;
-            transition: background-color 0.3s ease;
-        }
-        .btn-home:hover {
-            background-color: #2980b9;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-    </style>
 </head>
 <body>
-    <div class="error-container fade-in">
-              <picture>
-                <source srcset="/static/images/error-general.svg" type="image/svg+xml">
-                <source srcset="/static/images/error-not-found.svg" type="image/svg+xml">
-                <img src="/static/images/error-icon.jpg" alt="Error Icon" class="error-image">
-              </picture>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header>
+        <a href="/" class="brand" aria-label="Yaplane Community home"><span class="brand-mark" aria-hidden="true">y<span>&bull;</span></span>yaplane<span class="brand-period">.</span></a>
+        <nav aria-label="Main navigation"><ul><li><a href="/">Discussions</a></li></ul></nav>
+    </header>
+    <main id="content" tabindex="-1" class="error-container">
+        <img src="/static/images/error-general.svg" alt="" class="error-image">
+        <span class="eyebrow">LET&rsquo;S FIND YOUR WAY BACK</span>
         <h1 class="error-code">{{.ErrorCode}}</h1>
         <p class="error-message">{{.ErrorMessage}}</p>
-        <a href="/" class="btn-home"><i class="fas fa-home"></i> Return to Homepage</a>
-    </div>
+        <a href="/" class="btn-home">Back to discussions</a>
+    </main>
 </body>
 </html>

@@ -4,21 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{.Post.Title}} - Forum</title>
+    <title>{{.Post.Title}} | Yaplane Community</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/static/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 
 <body>
+    <a class="skip-link" href="#content">Skip to content</a>
     <header>
-        <nav>
+        <a href="/" class="brand" aria-label="Yaplane Community home"><span class="brand-mark" aria-hidden="true">y<span>&bull;</span></span>yaplane<span class="brand-period">.</span></a>
+        <nav aria-label="Main navigation">
             <ul>
                 <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
             </ul>
         </nav>
     </header>
-    <main>
+    <main id="content" tabindex="-1">
+        <div class="page-heading"><a href="/">&larr; Back to discussions</a></div>
         <article class="post">
             <h1>{{.Post.Title}}</h1>
             <p class="post-meta">
@@ -58,7 +61,7 @@
                 </div>
             {{end}}
         </article>
-        <h1 class="comments-name">comments:</h1>
+        <h2 class="comments-name">The conversation</h2>
         <section class="comments">
             {{range .Comments}}
             <div class="comment" data-id="{{.ID}}">
@@ -85,9 +88,10 @@
         </section>
 
         <section class="add-comment">
-            <h2>Leave a Comment</h2>
+            <h2>Add your perspective</h2>
             <form action="/post/comment" method="POST">
-                <textarea name="content" rows="5" placeholder="Add your comment..." required></textarea>
+                <label for="commentContent">Your comment</label>
+                <textarea id="commentContent" name="content" rows="5" placeholder="Add your comment..." required></textarea>
                 <input type="hidden" name="post_id" value="{{.Post.ID}}">
                 <button type="submit">Submit Comment</button>
             </form>
