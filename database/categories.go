@@ -7,15 +7,6 @@ import (
 	"strings"
 )
 
-func CreateCategory(name string) (int64, error) {
-	result, err := DBInstance.DB.Exec("INSERT INTO categories (name) VALUES (?)", name)
-	if err != nil {
-		return 0, err
-	}
-	return result.LastInsertId()
-}
-
-
 func GetAllCategories() ([]models.Category, error) {
 	rows, err := DBInstance.DB.Query("SELECT id, name FROM categories")
 	if err != nil {
@@ -34,11 +25,6 @@ func GetAllCategories() ([]models.Category, error) {
 	return categories, nil
 }
 
-
-func AssociateCategoryWithPost(postID, categoryID int) error {
-	_, err := DBInstance.DB.Exec("UPDATE posts SET category_id = ? WHERE id = ?", categoryID, postID)
-	return err
-}
 func GetPostsByCategories(selectedCategories []string) ([]models.Post, error) {
 
 	query := `
@@ -61,12 +47,10 @@ func GetPostsByCategories(selectedCategories []string) ([]models.Post, error) {
 		ORDER BY p.created_at DESC
 	`
 
-
 	args := make([]interface{}, len(selectedCategories))
 	for i, category := range selectedCategories {
 		args[i] = category
 	}
-
 
 	rows, err := DBInstance.DB.Query(query, args...)
 	if err != nil {
@@ -82,7 +66,7 @@ func GetPostsByCategories(selectedCategories []string) ([]models.Post, error) {
 		if err != nil {
 			return nil, err
 		}
-		
+
 		p.Categories = strings.Split(categoriesString, ",")
 		posts = append(posts, p)
 	}
@@ -90,11 +74,9 @@ func GetPostsByCategories(selectedCategories []string) ([]models.Post, error) {
 	return posts, nil
 }
 
-
 func AddDefaultCategories(db *sql.DB) error {
 
 	categories := []string{"science", "technology", "art", "sport", "games"}
-
 
 	stmt, err := db.Prepare("INSERT INTO categories (name) VALUES (?)")
 	if err != nil {
@@ -102,11 +84,10 @@ func AddDefaultCategories(db *sql.DB) error {
 	}
 	defer stmt.Close()
 
-
 	for _, category := range categories {
 		_, err := stmt.Exec(category)
 		if err != nil {
-			
+
 			return err
 		}
 	}
@@ -117,13 +98,11 @@ func AddDefaultCategories(db *sql.DB) error {
 func ValidateCategoriesPath(r *http.Request) bool {
 	validCategories := []string{"technology", "science", "art", "sport", "games"}
 
-	
 	for key := range r.URL.Query() {
 		if key != "categories" {
 			return false
 		}
 	}
-
 
 	categories := r.URL.Query()["categories"]
 	for _, cat := range categories {
