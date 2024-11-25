@@ -2,14 +2,11 @@ package handlers
 
 import (
 	handleError "forum/Error"
-	cookies "forum/cookies"
 	database "forum/database"
+	"golang.org/x/crypto/bcrypt"
 	"html/template"
 	"net/http"
 	"strings"
-	"time"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 func ServeRegister(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +52,6 @@ func ServeRegister(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		
 		if password != confirmPassword {
 			errMsg := "Passwords do not match."
 			tmpl.Execute(w, map[string]interface{}{
@@ -64,20 +60,18 @@ func ServeRegister(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 		if err != nil {
 			http.Error(w, "Error securing password", http.StatusInternalServerError)
 			return
 		}
 
-	
 		_, err = database.DBInstance.DB.Exec(
 			"INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
 			username, email, hashedPassword,
 		)
 		if err != nil {
-			
+
 			if err.Error() == "UNIQUE constraint failed: users.username" || err.Error() == "UNIQUE constraint failed: users.email" {
 				errMsg := "Username or email already exists."
 				tmpl.Execute(w, map[string]interface{}{
@@ -88,22 +82,10 @@ func ServeRegister(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
-
-		sessionToken := cookies.GenerateRandomToken()
-
-		err = database.StoreSession(sessionToken, email)
-		if err != nil {
-			handleError.ServeError(w, r, http.StatusInternalServerError)
+		if err := startSession(w, email); err != nil {
+			http.Error(w, "Unable to create a session", 500)
 			return
 		}
-
-		http.SetCookie(w, &http.Cookie{
-			Name:     "session_token",
-			Value:    sessionToken,
-			Expires:  time.Now().Add(24 * time.Hour),
-			HttpOnly: true,
-		})
-
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
