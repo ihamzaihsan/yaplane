@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"forum/cookies"
 	models "forum/models"
 	"time"
 )
@@ -21,7 +22,7 @@ func StoreSession(sessionToken, email string) error {
 		return fmt.Errorf("failed to delete existing session: %v", err)
 	}
 
-	expirationTime := time.Now().Add(24 * time.Hour)
+	expirationTime := time.Now().UTC().Add(cookies.SessionDuration)
 	_, err = tx.Exec(
 		"INSERT INTO sessions (session_token, email, expires_at) VALUES (?, ?, ?)",
 		sessionToken, email, expirationTime,
@@ -38,7 +39,7 @@ func StoreSession(sessionToken, email string) error {
 
 func GetEmailFromSession(token string) (string, error) {
 	var email string
-	err := DBInstance.DB.QueryRow("SELECT email FROM sessions WHERE session_token = ?", token).Scan(&email)
+	err := DBInstance.DB.QueryRow("SELECT email FROM sessions WHERE session_token = ? AND julianday(expires_at) > julianday(?)", token, time.Now().UTC()).Scan(&email)
 	if err != nil {
 		return "", err
 	}
@@ -48,13 +49,13 @@ func GetEmailFromSession(token string) (string, error) {
 func GetUserBySession(sessionToken string) (*models.User, error) {
 	var user models.User
 
-	query := `SELECT u.id, u.username, u.email, u.created_at, 
+	query := `SELECT u.id, u.username, u.email, u.created_at,
                      COALESCE((SELECT COUNT(*) FROM posts WHERE user_id = u.id), 0) AS post_count,
                      COALESCE((SELECT COUNT(*) FROM comments WHERE user_id = u.id), 0) AS comment_count
               FROM users u 
               JOIN sessions s ON u.email = s.email 
-              WHERE s.session_token = ?`
-	row := DBInstance.DB.QueryRow(query, sessionToken)
+              WHERE s.session_token = ? AND julianday(s.expires_at) > julianday(?)`
+	row := DBInstance.DB.QueryRow(query, sessionToken, time.Now().UTC())
 	err := row.Scan(&user.ID, &user.Username, &user.Email, &user.JoinDate, &user.PostCount, &user.CommentCount)
 	if err == sql.ErrNoRows {
 		return nil, errors.New("no user found with the provided session token")
