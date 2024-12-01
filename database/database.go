@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	_ "github.com/mattn/go-sqlite3" 
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type DataBase struct {
@@ -15,35 +15,34 @@ var DBInstance DataBase
 
 func InitDB() error {
 	var err error
-	DBInstance.DB, err = sql.Open("sqlite3", "Forum.db")
+	DBInstance.DB, err = sql.Open("sqlite3", "Forum.db?_foreign_keys=on&_busy_timeout=5000")
 	if err != nil {
 		return fmt.Errorf("error opening database: %v", err)
 	}
 
+	// A single connection serializes SQLite writes and session replacement transactions.
+	DBInstance.DB.SetMaxOpenConns(1)
 	err = DBInstance.DB.Ping()
 	if err != nil {
 		return fmt.Errorf("error pinging database: %v", err)
 	}
-
 
 	_, err = DBInstance.DB.Exec("PRAGMA foreign_keys = ON;")
 	if err != nil {
 		return fmt.Errorf("error enabling foreign keys: %v", err)
 	}
 
-
 	err = CreateTables(DBInstance.DB)
 	if err != nil {
 		return fmt.Errorf("error creating tables: %v", err)
 	}
-	
 	AddDefaultCategories(DBInstance.DB)
 
 	return nil
 }
 
 func CreateTables(db *sql.DB) error {
-	
+
 	createUsersTable := `
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,19 +52,16 @@ func CreateTables(db *sql.DB) error {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );`
 
-	
 	if _, err := db.Exec(createUsersTable); err != nil {
 		return fmt.Errorf("failed to create users table: %v", err)
 	}
 
-	
 	createCategoriesTable := `
     CREATE TABLE IF NOT EXISTS categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE
     );`
 
-	
 	if _, err := db.Exec(createCategoriesTable); err != nil {
 		return fmt.Errorf("failed to create categories table: %v", err)
 	}
@@ -82,7 +78,7 @@ func CreateTables(db *sql.DB) error {
     );`
 
 	if _, err := db.Exec(createPostsTable); err != nil {
-    return fmt.Errorf("failed to create posts table: %v", err)
+		return fmt.Errorf("failed to create posts table: %v", err)
 	}
 
 	createPostCategoriesTable := `
@@ -94,11 +90,10 @@ func CreateTables(db *sql.DB) error {
           FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
       );`
 
-	
 	if _, err := db.Exec(createPostCategoriesTable); err != nil {
-    return fmt.Errorf("failed to create post_categories table: %v", err)
+		return fmt.Errorf("failed to create post_categories table: %v", err)
 	}
-	
+
 	createCommentsTable := `
     CREATE TABLE IF NOT EXISTS comments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -110,12 +105,10 @@ func CreateTables(db *sql.DB) error {
         FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE
     );`
 
-	
 	if _, err := db.Exec(createCommentsTable); err != nil {
 		return fmt.Errorf("failed to create comments table: %v", err)
 	}
 
-	
 	createLikesTable := `
     CREATE TABLE IF NOT EXISTS likes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -134,7 +127,6 @@ func CreateTables(db *sql.DB) error {
 		return fmt.Errorf("failed to create likes table: %v", err)
 	}
 
-	
 	createSessionTable := `
     CREATE TABLE IF NOT EXISTS sessions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -144,10 +136,9 @@ func CreateTables(db *sql.DB) error {
         FOREIGN KEY (email) REFERENCES users (email) ON DELETE CASCADE
     );`
 
-
 	if _, err := db.Exec(createSessionTable); err != nil {
 		return fmt.Errorf("failed to create sessions table: %v", err)
 	}
 
-	return nil 
+	return nil
 }
