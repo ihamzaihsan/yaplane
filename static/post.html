@@ -7,7 +7,6 @@
     <title>{{.Post.Title}} | Yaplane Community</title>
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 
 <body>
@@ -16,7 +15,7 @@
         <a href="/" class="brand" aria-label="Yaplane Community home"><span class="brand-mark" aria-hidden="true">y<span>&bull;</span></span>yaplane<span class="brand-period">.</span></a>
         <nav aria-label="Main navigation">
             <ul>
-                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#home"></use></svg> Home</a></li>
             </ul>
         </nav>
     </header>
@@ -44,11 +43,11 @@
                 {{.Post.Content}}
             </div>
             <div class="post-likes">
-                <button onclick="likePost('{{.Post.ID}}', true)">
-                    <i class="fas fa-thumbs-up"></i>
+                <button aria-label="Like" onclick="likePost('{{.Post.ID}}', true)">
+                    <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-up"></use></svg>
                 </button> <span class="like-count">{{.Likes}}</span> likes
-                <button onclick="likePost('{{.Post.ID}}', false)">
-                    <i class="fas fa-thumbs-down"></i>
+                <button aria-label="Dislike" onclick="likePost('{{.Post.ID}}', false)">
+                    <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-down"></use></svg>
                 </button> <span class="dislike-count">{{.Dislikes}}</span> dislikes
             </div>
 
@@ -56,7 +55,7 @@
                 <div class="post-actions">
                     <form action="/delete-post" method="POST" onsubmit="return confirm('Are you sure you want to delete this post?');">
                         <input type="hidden" name="post_id" value="{{.Post.ID}}">
-                        <button type="submit" class="delete-btn"><i class="fas fa-trash"></i> Delete Post</button>
+                        <button type="submit" class="delete-btn"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#trash"></use></svg> Delete Post</button>
                     </form>
                 </div>
             {{end}}
@@ -73,11 +72,11 @@
                     on {{.CreatedAt.Format "Jan 02, 2006 at 15:04"}}
                 </p>
                 <div class="comment-likes">
-                    <button onclick="likeComment('{{.ID}}', true)">
-                        <i class="fas fa-thumbs-up"></i>
+                    <button aria-label="Like" onclick="likeComment('{{.ID}}', true)">
+                        <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-up"></use></svg>
                     </button> <span class="like-count">{{.Likes}}</span> likes
-                    <button onclick="likeComment('{{.ID}}', false)">
-                        <i class="fas fa-thumbs-down"></i>
+                    <button aria-label="Dislike" onclick="likeComment('{{.ID}}', false)">
+                        <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-down"></use></svg>
                     </button> <span class="dislike-count">{{.Dislikes}}</span> dislikes
                 </div>
             </div>
@@ -119,12 +118,12 @@
             })
             .then(data => {
                 document.querySelector('.post-likes').innerHTML = `
-                    <button onclick="likePost('${postId}', true)">
-                        <i class="fas fa-thumbs-up"></i>
+                    <button aria-label="Like" onclick="likePost('${postId}', true)">
+                        <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-up"></use></svg>
                     </button>
                     <span class="like-count">${data.likes}</span> likes
-                    <button onclick="likePost('${postId}', false)">
-                        <i class="fas fa-thumbs-down"></i>
+                    <button aria-label="Dislike" onclick="likePost('${postId}', false)">
+                        <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-down"></use></svg>
                     </button>
                     <span class="dislike-count">${data.dislikes}</span> dislikes
                 `;
@@ -148,11 +147,11 @@
             }
 
             likesElement.innerHTML = `
-                <button onclick="likeComment('${commentId}', true)">
-                    <i class="fas fa-thumbs-up"></i>
+                <button aria-label="Like" onclick="likeComment('${commentId}', true)">
+                    <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-up"></use></svg>
                 </button> <span class="like-count">${currentLikes}</span> likes
-                <button onclick="likeComment('${commentId}', false)">
-                    <i class="fas fa-thumbs-down"></i>
+                <button aria-label="Dislike" onclick="likeComment('${commentId}', false)">
+                    <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-down"></use></svg>
                 </button> <span class="dislike-count">${currentDislikes}</span> dislikes
             `;
             
@@ -174,11 +173,11 @@
             })
             .then(data => {
                 likesElement.innerHTML = `
-                    <button onclick="likeComment('${commentId}', true)">
-                        <i class="fas fa-thumbs-up"></i>
+                    <button aria-label="Like" onclick="likeComment('${commentId}', true)">
+                        <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-up"></use></svg>
                     </button> <span class="like-count">${data.likes}</span> likes
-                    <button onclick="likeComment('${commentId}', false)">
-                        <i class="fas fa-thumbs-down"></i>
+                    <button aria-label="Dislike" onclick="likeComment('${commentId}', false)">
+                        <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-down"></use></svg>
                     </button> <span class="dislike-count">${data.dislikes}</span> dislikes
                 `;
             })
@@ -190,11 +189,11 @@
                     currentDislikes--;
                 }
                 likesElement.innerHTML = `
-                    <button onclick="likeComment('${commentId}', true)">
-                        <i class="fas fa-thumbs-up"></i>
+                    <button aria-label="Like" onclick="likeComment('${commentId}', true)">
+                        <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-up"></use></svg>
                     </button> <span class="like-count">${currentLikes}</span> likes
-                    <button onclick="likeComment('${commentId}', false)">
-                        <i class="fas fa-thumbs-down"></i>
+                    <button aria-label="Dislike" onclick="likeComment('${commentId}', false)">
+                        <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-down"></use></svg>
                     </button> <span class="dislike-count">${currentDislikes}</span> dislikes
                 `;
             });

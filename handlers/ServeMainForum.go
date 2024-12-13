@@ -10,7 +10,6 @@ import (
 	"strings"
 )
 
-
 func ServeMainForum(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		handleError.ServeError(w, r, http.StatusNotFound)
@@ -21,7 +20,6 @@ func ServeMainForum(w http.ResponseWriter, r *http.Request) {
 		handleError.ServeError(w, r, http.StatusNotFound)
 		return
 	}
-
 
 	categories := r.URL.Query()["categories"]
 
