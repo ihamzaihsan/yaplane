@@ -139,6 +139,14 @@ func CreateTables(db *sql.DB) error {
 	if _, err := db.Exec(createSessionTable); err != nil {
 		return fmt.Errorf("failed to create sessions table: %v", err)
 	}
+	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS oauth_identities (
+		provider TEXT NOT NULL CHECK(provider IN ('google','github')),
+		subject TEXT NOT NULL,
+		user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		PRIMARY KEY(provider,subject), UNIQUE(provider,user_id)
+	)`); err != nil {
+		return fmt.Errorf("failed to create OAuth identities table: %w", err)
+	}
 
 	return nil
 }
