@@ -1,16 +1,20 @@
 package handlers
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -82,4 +86,82 @@ func (o *OAuth) signature(provider, value string) string {
 	h := hmac.New(sha256.New, o.key[:])
 	h.Write([]byte(provider + ":" + value))
 	return base64.RawURLEncoding.EncodeToString(h.Sum(nil))
+}
+
+func (o *OAuth) requestJSON(ctx context.Context, method, endpoint, token string, form url.Values, result interface{}) error {
+	var body io.Reader
+	if form != nil {
+		body = strings.NewReader(form.Encode())
+	}
+	r, err := http.NewRequestWithContext(ctx, method, endpoint, body)
+	if err != nil {
+		return err
+	}
+	r.Header.Set("Accept", "application/json")
+	r.Header.Set("User-Agent", "Yaplane-Community")
+	if form != nil {
+		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	}
+	if token != "" {
+		r.Header.Set("Authorization", "Bearer "+token)
+	}
+	response, err := o.client.Do(r)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("provider returned HTTP %d", response.StatusCode)
+	}
+	return json.NewDecoder(io.LimitReader(response.Body, 1<<20)).Decode(result)
+}
+
+func (o *OAuth) identity(ctx context.Context, p oauthProvider, redirect, code, verifier string) (string, string, string, error) {
+	var token struct {
+		AccessToken string `json:"access_token"`
+		TokenType   string `json:"token_type"`
+		Error       string `json:"error"`
+	}
+	err := o.requestJSON(ctx, "POST", p.token, "", url.Values{"grant_type": {"authorization_code"}, "client_id": {p.clientID}, "client_secret": {p.secret}, "redirect_uri": {redirect}, "code": {code}, "code_verifier": {verifier}}, &token)
+	if err != nil || token.Error != "" || token.AccessToken == "" || !strings.EqualFold(token.TokenType, "bearer") {
+		return "", "", "", errors.New("provider did not issue a bearer token")
+	}
+	var user struct {
+		Subject  string `json:"sub"`
+		ID       int64  `json:"id"`
+		Email    string `json:"email"`
+		Verified bool   `json:"email_verified"`
+		Name     string `json:"name"`
+		Login    string `json:"login"`
+	}
+	if err := o.requestJSON(ctx, "GET", p.user, token.AccessToken, nil, &user); err != nil {
+		return "", "", "", err
+	}
+	if p.emails != "" {
+		if user.ID <= 0 {
+			return "", "", "", errors.New("missing GitHub identity")
+		}
+		user.Subject = strconv.FormatInt(user.ID, 10)
+		user.Name = user.Login
+		var emails []struct {
+			Email    string `json:"email"`
+			Primary  bool   `json:"primary"`
+			Verified bool   `json:"verified"`
+		}
+		if err := o.requestJSON(ctx, "GET", p.emails, token.AccessToken, nil, &emails); err != nil {
+			return "", "", "", err
+		}
+		user.Email, user.Verified = "", false
+		for _, email := range emails {
+			if email.Primary && email.Verified {
+				user.Email, user.Verified = email.Email, true
+				break
+			}
+		}
+	}
+	user.Email = strings.ToLower(strings.TrimSpace(user.Email))
+	if user.Subject == "" || len(user.Subject) > 255 || !user.Verified || !validEmail(user.Email) {
+		return "", "", "", errors.New("missing identity or verified email")
+	}
+	return user.Subject, user.Email, user.Name, nil
 }
