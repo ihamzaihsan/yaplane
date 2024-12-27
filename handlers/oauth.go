@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	database "forum/database"
 	"io"
 	"log"
 	"net/http"
@@ -86,6 +87,95 @@ func (o *OAuth) signature(provider, value string) string {
 	h := hmac.New(sha256.New, o.key[:])
 	h.Write([]byte(provider + ":" + value))
 	return base64.RawURLEncoding.EncodeToString(h.Sum(nil))
+}
+
+func (o *OAuth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	path := strings.Split(strings.TrimPrefix(r.URL.Path, "/auth/"), "/")
+	if len(path) > 2 || (len(path) == 2 && path[1] != "callback") {
+		http.NotFound(w, r)
+		return
+	}
+	name := path[0]
+	if name != "google" && name != "github" {
+		http.NotFound(w, r)
+		return
+	}
+	p, enabled := o.providers[name]
+	if o.err != nil || !enabled {
+		http.Error(w, "This sign-in provider is not configured. Use email and password instead.", http.StatusServiceUnavailable)
+		return
+	}
+	// Use a configured origin, never an untrusted Host header, for redirect URIs.
+	u, _ := url.Parse(o.baseURL)
+	if r.TLS == nil || !strings.EqualFold(r.Host, u.Host) {
+		http.Error(w, "Sign in from the configured forum HTTPS address.", http.StatusBadRequest)
+		return
+	}
+	redirect := o.baseURL + "/auth/" + name + "/callback"
+	if len(path) == 1 {
+		var random [64]byte
+		if _, err := rand.Read(random[:]); err != nil {
+			http.Error(w, "Unable to start sign-in", 500)
+			return
+		}
+		state := base64.RawURLEncoding.EncodeToString(random[:32])
+		verifier := base64.RawURLEncoding.EncodeToString(random[32:])
+		value := state + "." + verifier + "." + strconv.FormatInt(time.Now().Unix(), 10)
+		http.SetCookie(w, oauthCookie(name, value+"."+o.signature(name, value), int(oauthLifetime.Seconds())))
+		challenge := sha256.Sum256([]byte(verifier))
+		query := url.Values{"client_id": {p.clientID}, "redirect_uri": {redirect}, "response_type": {"code"}, "scope": {p.scope}, "state": {state}, "code_challenge": {base64.RawURLEncoding.EncodeToString(challenge[:])}, "code_challenge_method": {"S256"}}
+		http.Redirect(w, r, p.authorize+"?"+query.Encode(), http.StatusFound)
+		return
+	}
+	// Clear the short-lived browser binding on every callback, including failures.
+	http.SetCookie(w, oauthCookie(name, "", -1))
+	cookie, err := r.Cookie("__Host-oauth-" + name)
+	parts := []string{}
+	if err == nil {
+		parts = strings.Split(cookie.Value, ".")
+	}
+	valid := len(parts) == 4
+	if valid {
+		issued, err := strconv.ParseInt(parts[2], 10, 64)
+		age := time.Now().Unix() - issued
+		valid = err == nil && age >= 0 && age < int64(oauthLifetime.Seconds()) &&
+			hmac.Equal([]byte(parts[3]), []byte(o.signature(name, strings.Join(parts[:3], ".")))) &&
+			len(parts[0]) == 43 && len(parts[1]) == 43 && hmac.Equal([]byte(parts[0]), []byte(r.URL.Query().Get("state")))
+	}
+	if !valid {
+		oauthFailure(w, r, "Sign-in expired or could not be verified. Please try again.")
+		return
+	}
+	if r.URL.Query().Get("error") != "" || r.URL.Query().Get("code") == "" {
+		oauthFailure(w, r, "Sign-in was cancelled or no authorization code was returned.")
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
+	defer cancel()
+	subject, email, username, err := o.identity(ctx, p, redirect, r.URL.Query().Get("code"), parts[1])
+	if err != nil {
+		log.Printf("Verify %s sign-in: %v", name, err)
+		oauthFailure(w, r, "Unable to verify your account. Ensure your provider has a verified email and try again.")
+		return
+	}
+	email, err = database.OAuthUser(name, subject, email, username)
+	if errors.Is(err, database.ErrEmailRegistered) {
+		oauthFailure(w, r, "This email already has an account. Use its original sign-in method.")
+		return
+	}
+	if err != nil {
+		http.Error(w, "Unable to create the account", 500)
+		return
+	}
+	if err := startSession(w, email); err != nil {
+		http.Error(w, "Unable to create a session", 500)
+		return
+	}
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func oauthFailure(w http.ResponseWriter, r *http.Request, message string) {
+	http.Redirect(w, r, "/login?"+url.Values{"error": {message}}.Encode(), http.StatusSeeOther)
 }
 
 func (o *OAuth) requestJSON(ctx context.Context, method, endpoint, token string, form url.Values, result interface{}) error {
