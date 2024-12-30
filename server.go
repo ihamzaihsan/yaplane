@@ -54,6 +54,7 @@ func newServer(c serverConfig) *http.Server {
 	add("/", handlers.ServeMainForum, false, "GET")
 	add("/login", handlers.ServeLogin, false, "GET", "POST")
 	add("/register", handlers.ServeRegister, false, "GET", "POST")
+	add("/auth/", handlers.NewOAuth().ServeHTTP, false, "GET")
 	add("/profile", handlers.ServeProfile, true, "GET")
 	add("/logout", handlers.ServeLogout, false, "POST")
 	add("/post/", handlers.ServeIndividualPost, false, "GET")
