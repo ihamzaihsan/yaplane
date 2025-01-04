@@ -6,6 +6,7 @@
     <title>Login | Yaplane Community</title>
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/static/style.css">
+
 </head>
 <body>
     <a class="skip-link" href="#content">Skip to content</a>
@@ -36,6 +37,13 @@
                 <p class="error-message" role="alert">{{.ErrorMessage}}</p>
             {{end}}
 
+            {{if or .GoogleEnabled .GitHubEnabled}}
+            <div class="oauth-buttons" aria-label="Other sign-in methods">
+                {{if .GoogleEnabled}}<a href="/auth/google">Continue with Google</a>{{end}}
+                {{if .GitHubEnabled}}<a href="/auth/github">Continue with GitHub</a>{{end}}
+            </div>
+            <p class="auth-divider">or use your email</p>
+            {{end}}
             <form action="/login" method="post">
                 <div class="input-group">
                     <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#envelope"></use></svg>

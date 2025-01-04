@@ -140,6 +140,10 @@ fieldset legend { font-size: 12px; font-weight: 550; margin-bottom: 8px; }
 .login-container, .register-container { border: 0; border-radius: 0; box-shadow: none; padding: 42px; align-self: center; }
 .login-container h2, .register-container h2 { font-size: 30px; font-weight: 550; letter-spacing: -1px; margin: 12px 0; }
 .auth-description { color: var(--muted); font-size: 12px; margin-bottom: 24px; }
+.oauth-buttons { display: grid; gap: 10px; }
+.oauth-buttons a { display: block; padding: 11px 16px; border: 1px solid var(--line); border-radius: 8px; text-align: center; font-size: 12px; font-weight: 600; }
+.oauth-buttons a:hover { background: var(--surface); border-color: var(--ink); }
+.auth-divider { color: var(--muted); text-align: center; font-size: 12px; margin: 18px 0; }
 .footer { text-align: center; font-size: 12px; color: var(--muted); margin-top: 22px; }
 .footer a { color: var(--accent); }
 .profile-container h2 { font-size: 24px; margin-bottom: 24px; }
