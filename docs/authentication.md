@@ -39,3 +39,7 @@ Matching emails never automatically link accounts. If an email already belongs t
 The browser is bound to the flow using a signed, provider-specific, Secure/HttpOnly/SameSite=Lax cookie that expires after ten minutes. The authorization request uses random state and an S256 PKCE challenge; callbacks check state, signature, provider, and issuance time before any exchange. The authorization code is exchanged server-side. Access tokens are used only to fetch identity and are never stored in SQLite or sent to the browser. Provider requests have timeouts, bounded response reads, and do not follow redirects. Restarting the forum invalidates pending flows because the signing key is held in memory.
 
 Local registration now also rejects malformed emails and passwords exceeding bcrypt's 72-byte limit. Duplicate usernames/emails return HTTP 409 with an error message; missing fields and mismatched passwords return HTTP 400. Existing password handling and bcrypt hashing are retained.
+
+## Verification
+
+Build and check the source with `go build ./...` and `go vet ./...`. The automated test files were removed during repository cleanup; their earlier versions remain in Git history. These commands do not verify browser workflows or live OAuth providers.
