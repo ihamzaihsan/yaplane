@@ -36,7 +36,9 @@ func InitDB() error {
 	if err != nil {
 		return fmt.Errorf("error creating tables: %v", err)
 	}
-	AddDefaultCategories(DBInstance.DB)
+	if err := AddDefaultCategories(DBInstance.DB); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -148,5 +150,8 @@ func CreateTables(db *sql.DB) error {
 		return fmt.Errorf("failed to create OAuth identities table: %w", err)
 	}
 
+	if err := migrateModeration(db); err != nil {
+		return fmt.Errorf("moderation schema: %w", err)
+	}
 	return nil
 }

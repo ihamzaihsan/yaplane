@@ -49,14 +49,14 @@ func GetEmailFromSession(token string) (string, error) {
 func GetUserBySession(sessionToken string) (*models.User, error) {
 	var user models.User
 
-	query := `SELECT u.id, u.username, u.email, u.created_at,
+	query := `SELECT u.id, u.username, u.email, u.created_at, u.role,
                      COALESCE((SELECT COUNT(*) FROM posts WHERE user_id = u.id), 0) AS post_count,
                      COALESCE((SELECT COUNT(*) FROM comments WHERE user_id = u.id), 0) AS comment_count
               FROM users u 
               JOIN sessions s ON u.email = s.email 
               WHERE s.session_token = ? AND julianday(s.expires_at) > julianday(?)`
 	row := DBInstance.DB.QueryRow(query, sessionToken, time.Now().UTC())
-	err := row.Scan(&user.ID, &user.Username, &user.Email, &user.JoinDate, &user.PostCount, &user.CommentCount)
+	err := row.Scan(&user.ID, &user.Username, &user.Email, &user.JoinDate, &user.Role, &user.PostCount, &user.CommentCount)
 	if err == sql.ErrNoRows {
 		return nil, errors.New("no user found with the provided session token")
 	} else if err != nil {

@@ -5,10 +5,11 @@ import (
 )
 
 type User struct {
-    ID            int
-    Username      string
-    Email         string
-    JoinDate      time.Time
-    PostCount     int 
-    CommentCount  int 
+	ID           int
+	Username     string
+	Role         string
+	Email        string
+	JoinDate     time.Time
+	PostCount    int
+	CommentCount int
 }

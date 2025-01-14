@@ -75,24 +75,29 @@ func GetPostsByCategories(selectedCategories []string) ([]models.Post, error) {
 }
 
 func AddDefaultCategories(db *sql.DB) error {
-
-	categories := []string{"science", "technology", "art", "sport", "games"}
-
-	stmt, err := db.Prepare("INSERT INTO categories (name) VALUES (?)")
+	tx, err := db.Begin()
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
-
-	for _, category := range categories {
-		_, err := stmt.Exec(category)
-		if err != nil {
-
+	defer tx.Rollback()
+	if _, err := tx.Exec("CREATE TABLE IF NOT EXISTS forum_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)"); err != nil {
+		return err
+	}
+	var seeded bool
+	if err := tx.QueryRow("SELECT EXISTS(SELECT 1 FROM forum_settings WHERE key='categories_seeded')").Scan(&seeded); err != nil {
+		return err
+	}
+	if !seeded {
+		for _, category := range []string{"science", "technology", "art", "sport", "games"} {
+			if _, err := tx.Exec("INSERT OR IGNORE INTO categories(name) VALUES(?)", category); err != nil {
+				return err
+			}
+		}
+		if _, err := tx.Exec("INSERT INTO forum_settings VALUES('categories_seeded','true')"); err != nil {
 			return err
 		}
 	}
-
-	return nil
+	return tx.Commit()
 }
 
 func ValidateCategoriesPath(r *http.Request) bool {
