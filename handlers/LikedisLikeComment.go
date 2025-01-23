@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"encoding/json" 
+	"encoding/json"
 	handleError "forum/Error"
 	database "forum/database"
 	"log"
@@ -15,13 +15,11 @@ func LikeDislikeComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
-
 
 	userEmail, err := database.GetEmailFromSession(cookie.Value)
 	if err != nil {
@@ -38,7 +36,6 @@ func LikeDislikeComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	commentID, err := strconv.Atoi(r.FormValue("comment_id"))
 	if err != nil && r.FormValue("comment_id") != "" {
 		handleError.ServeError(w, r, http.StatusBadRequest)
@@ -51,12 +48,14 @@ func LikeDislikeComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	if commentID == 0 {
 		handleError.ServeError(w, r, http.StatusBadRequest)
 		return
 	}
 
+	if !publishedTarget(w, r, commentID, true) {
+		return
+	}
 
 	var existingIsLike bool
 	err = database.DBInstance.DB.QueryRow(
@@ -65,7 +64,7 @@ func LikeDislikeComment(w http.ResponseWriter, r *http.Request) {
 	).Scan(&existingIsLike)
 
 	if err == nil {
-		
+
 		_, err = database.DBInstance.DB.Exec(
 			"UPDATE likes SET is_like = ? WHERE user_id = ? AND comment_id = ?",
 			isLike, userID, commentID,
@@ -76,7 +75,7 @@ func LikeDislikeComment(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		
+
 		_, err = database.DBInstance.DB.Exec(
 			`INSERT INTO likes (user_id, comment_id, is_like)
              VALUES (?, ?, ?)`,
@@ -88,7 +87,6 @@ func LikeDislikeComment(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
 
 	var likesCount, dislikesCount int
 	err = database.DBInstance.DB.QueryRow(
@@ -114,7 +112,6 @@ func LikeDislikeComment(w http.ResponseWriter, r *http.Request) {
 		Likes:    likesCount,
 		Dislikes: dislikesCount,
 	}
-
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)

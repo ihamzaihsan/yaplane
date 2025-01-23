@@ -1,63 +1,29 @@
 package handlers
 
 import (
-	handleError "forum/Error"
 	database "forum/database"
 	"net/http"
+	"strconv"
 )
 
 func ServeDeletePost(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		handleError.ServeError(w, r, http.StatusMethodNotAllowed)
+	if err := r.ParseForm(); err != nil {
+		moderationError(w, database.ErrInvalid)
 		return
 	}
-
-	
-	cookie, err := r.Cookie("session_token")
+	user, err := sessionUser(r)
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		moderationError(w, err)
 		return
 	}
-
-	
-	userEmail, err := database.GetEmailFromSession(cookie.Value)
-	if err != nil {
-		handleError.ServeError(w, r, http.StatusUnauthorized)
+	id, err := strconv.Atoi(r.FormValue("post_id"))
+	if err != nil || id <= 0 {
+		moderationError(w, database.ErrInvalid)
 		return
 	}
-
-
-	postID := r.FormValue("post_id")
-	if postID == "" {
-		handleError.ServeError(w, r, http.StatusBadRequest)
+	if err := database.Moderate(user.ID, id, "delete-post", "", ""); err != nil {
+		moderationError(w, err)
 		return
 	}
-
-
-	var postOwnerEmail string
-	err = database.DBInstance.DB.QueryRow(
-		`SELECT u.email 
-         FROM posts p 
-         JOIN users u ON p.user_id = u.id 
-         WHERE p.id = ?`, postID).Scan(&postOwnerEmail)
-
-	if err != nil {
-		handleError.ServeError(w, r, http.StatusNotFound)
-		return
-	}
-
-	
-	if postOwnerEmail != userEmail {
-		handleError.ServeError(w, r, http.StatusForbidden)
-		return
-	}
-
-	_, err = database.DBInstance.DB.Exec("DELETE FROM posts WHERE id = ?", postID)
-	if err != nil {
-		handleError.ServeError(w, r, http.StatusInternalServerError)
-		return
-	}
-
-
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

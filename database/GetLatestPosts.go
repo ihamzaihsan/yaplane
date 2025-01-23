@@ -10,11 +10,12 @@ func GetLatestPosts() ([]models.Post, error) {
         SELECT p.id, p.title, p.content, u.username, p.created_at, p.image_path,
                (SELECT COUNT(*) FROM likes WHERE post_id = p.id AND is_like = 1) AS likes,
                (SELECT COUNT(*) FROM likes WHERE post_id = p.id AND is_like = 0) AS dislikes,
-               GROUP_CONCAT(c.name) AS categories
+               COALESCE(GROUP_CONCAT(c.name),'') AS categories
         FROM posts p
         JOIN users u ON p.user_id = u.id
         LEFT JOIN post_categories pc ON p.id = pc.post_id
         LEFT JOIN categories c ON pc.category_id = c.id
+        WHERE p.status='approved'
         GROUP BY p.id
         ORDER BY p.created_at DESC
         LIMIT 10
@@ -37,5 +38,5 @@ func GetLatestPosts() ([]models.Post, error) {
 		p.Categories = strings.Split(categories, ",")
 		posts = append(posts, p)
 	}
-	return posts, nil
+	return posts, rows.Err()
 }

@@ -4,12 +4,15 @@ import (
 	"crypto/tls"
 	"fmt"
 	errorHandler "forum/Error"
+	database "forum/database"
 	"forum/handlers"
 	"forum/middleware"
+	"forum/models"
 	"io"
 	"net"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -56,6 +59,8 @@ func newServer(c serverConfig) *http.Server {
 	add("/register", handlers.ServeRegister, false, "GET", "POST")
 	add("/auth/", handlers.NewOAuth().ServeHTTP, false, "GET")
 	add("/profile", handlers.ServeProfile, true, "GET")
+	add("/moderation", handlers.ServeModeration, true, "GET")
+	add("/moderation/action", handlers.ServeModerationAction, true, "POST")
 	add("/logout", handlers.ServeLogout, false, "POST")
 	add("/post/", handlers.ServeIndividualPost, false, "GET")
 	add("/posts/create", handlers.ServePost, true, "GET", "POST")
@@ -87,6 +92,19 @@ func serveUploadedImage(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet && r.Method != http.MethodHead {
 		w.Header().Set("Allow", "GET, HEAD")
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	var viewer *models.User
+	w.Header().Set("Cache-Control", "no-store")
+	if cookie, err := r.Cookie("session_token"); err == nil {
+		viewer, _ = database.GetUserBySession(cookie.Value)
+	}
+	if err := database.CanViewUpload(path.Clean("uploads/"+r.URL.Path), viewer); err != nil {
+		if err == database.ErrNotFound {
+			http.NotFound(w, r)
+		} else {
+			http.Error(w, "Unable to read image", 500)
+		}
 		return
 	}
 	f, err := http.Dir("static/uploads").Open(r.URL.Path)

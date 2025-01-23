@@ -16,14 +16,19 @@ func ServeMainForum(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !database.ValidateCategoriesPath(r) {
+	topics, err := database.GetAllCategories()
+	if err != nil {
+		moderationError(w, err)
+		return
+	}
+	if !database.ValidateCategoriesPath(r, topics) {
 		handleError.ServeError(w, r, http.StatusNotFound)
 		return
 	}
 
 	categories := r.URL.Query()["categories"]
 
-	w.Header().Set("Cache-Control", "no-cache, must-revalidate")
+	w.Header().Set("Cache-Control", "no-store")
 
 	cookie, err := r.Cookie("session_token")
 	isLoggedIn := false
@@ -54,10 +59,11 @@ func ServeMainForum(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"isLoggedIn": isLoggedIn,
-		"userEmail":  userEmail,
-		"Posts":      posts,
-		"ViewTitle":  viewTitle,
+		"isLoggedIn":   isLoggedIn,
+		"userEmail":    userEmail,
+		"Posts":        posts,
+		"ViewTitle":    viewTitle,
+		"TopicOptions": topics,
 	}
 
 	tmpl, err := template.ParseFiles("static/index.html")

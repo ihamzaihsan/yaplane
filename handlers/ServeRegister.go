@@ -47,7 +47,7 @@ func ServeRegister(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error securing password", 500)
 		return
 	}
-	_, err = database.DBInstance.DB.Exec("INSERT INTO users (username,email,password) VALUES (?,?,?)", username, email, hash)
+	err = database.CreateUser(username, email, hash, r.FormValue("request_moderator") == "on")
 	if err != nil {
 		var sqliteErr sqlite3.Error
 		if errors.As(err, &sqliteErr) && sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {

@@ -30,13 +30,19 @@ func ServePost(w http.ResponseWriter, r *http.Request) {
 			handleError.ServeError(w, r, http.StatusInternalServerError)
 			return
 		}
-		tmpl.Execute(w, nil)
+		data, err := postFormData(map[string]interface{}{})
+		if err != nil {
+			moderationError(w, err)
+			return
+		}
+		tmpl.Execute(w, data)
 		return
 	}
 
 	if r.Method == http.MethodPost {
 		userEmail, _ := database.GetEmailFromSession(cookie.Value)
 		var userID int
+		var role string
 		err = database.DBInstance.DB.QueryRow("SELECT id FROM users WHERE email = ?", userEmail).Scan(&userID)
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -47,7 +53,6 @@ func ServePost(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		
 		r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 		err = r.ParseMultipartForm(maxUploadSize)
 		if err != nil {
@@ -58,7 +63,7 @@ func ServePost(w http.ResponseWriter, r *http.Request) {
 					handleError.ServeError(w, r, http.StatusInternalServerError)
 					return
 				}
-				tmpl.Execute(w, map[string]interface{}{
+				executePostForm(w, r, tmpl, map[string]interface{}{
 					"Error":      errMsg,
 					"Title":      strings.TrimSpace(r.FormValue("title")),
 					"Content":    strings.TrimSpace(r.FormValue("content")),
@@ -69,21 +74,17 @@ func ServePost(w http.ResponseWriter, r *http.Request) {
 			handleError.ServeError(w, r, http.StatusInternalServerError)
 			return
 		}
-		
 
-		
 		file, handler, err := r.FormFile("image")
 		var imagePath string
 		if err == nil && file != nil {
 			defer file.Close()
 
-			
 			if err := os.MkdirAll("static/uploads", 0755); err != nil {
 				handleError.ServeError(w, r, http.StatusInternalServerError)
 				return
 			}
 
-			
 			buffer := make([]byte, 512)
 			_, err := file.Read(buffer)
 			if err != nil {
@@ -128,7 +129,7 @@ func ServePost(w http.ResponseWriter, r *http.Request) {
 
 		if title == "" || content == "" {
 			errMsg := "Invalid input: Title and content cannot be empty or just spaces."
-			tmpl.Execute(w, map[string]interface{}{
+			executePostForm(w, r, tmpl, map[string]interface{}{
 				"Error":      errMsg,
 				"Title":      title,
 				"Content":    content,
@@ -139,7 +140,7 @@ func ServePost(w http.ResponseWriter, r *http.Request) {
 
 		if len(categoryIDs) == 0 {
 			errMsg := "Invalid input: Please select at least one category."
-			tmpl.Execute(w, map[string]interface{}{
+			executePostForm(w, r, tmpl, map[string]interface{}{
 				"Error":      errMsg,
 				"Title":      title,
 				"Content":    content,
@@ -149,15 +150,21 @@ func ServePost(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Save post and categories (same as your code)
+		status := "approved"
 		tx, err := database.DBInstance.DB.Begin()
 		if err != nil {
 			handleError.ServeError(w, r, http.StatusInternalServerError)
 			return
 		}
-
+		if err := tx.QueryRow("SELECT role FROM users WHERE id=?", userID).Scan(&role); err != nil {
+			tx.Rollback()
+			moderationError(w, err)
+			return
+		}
+		status = database.SubmissionStatus(role)
 		result, err := tx.Exec(
-			"INSERT INTO posts (title, content, image_path, user_id) VALUES (?, ?, ?, ?)",
-			title, content, imagePath, userID,
+			"INSERT INTO posts (title, content, image_path, user_id, status) VALUES (?, ?, ?, ?, ?)",
+			title, content, imagePath, userID, status,
 		)
 		if err != nil {
 			tx.Rollback()
@@ -192,6 +199,10 @@ func ServePost(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		target := "/"
+		if status == "pending" {
+			target = "/post/myPosts"
+		}
+		http.Redirect(w, r, target, http.StatusSeeOther)
 	}
 }

@@ -8,7 +8,7 @@ import (
 )
 
 func GetAllCategories() ([]models.Category, error) {
-	rows, err := DBInstance.DB.Query("SELECT id, name FROM categories")
+	rows, err := DBInstance.DB.Query("SELECT id, name FROM categories ORDER BY id")
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +22,7 @@ func GetAllCategories() ([]models.Category, error) {
 		}
 		categories = append(categories, cat)
 	}
-	return categories, nil
+	return categories, rows.Err()
 }
 
 func GetPostsByCategories(selectedCategories []string) ([]models.Post, error) {
@@ -36,7 +36,7 @@ func GetPostsByCategories(selectedCategories []string) ([]models.Post, error) {
 		JOIN users u ON p.user_id = u.id
 		LEFT JOIN post_categories pc ON p.id = pc.post_id
 		LEFT JOIN categories c ON pc.category_id = c.id
-		WHERE p.id IN (
+		WHERE p.status='approved' AND p.id IN (
 			SELECT p.id
 			FROM posts p
 			LEFT JOIN post_categories pc ON p.id = pc.post_id
@@ -71,7 +71,7 @@ func GetPostsByCategories(selectedCategories []string) ([]models.Post, error) {
 		posts = append(posts, p)
 	}
 
-	return posts, nil
+	return posts, rows.Err()
 }
 
 func AddDefaultCategories(db *sql.DB) error {
@@ -100,8 +100,11 @@ func AddDefaultCategories(db *sql.DB) error {
 	return tx.Commit()
 }
 
-func ValidateCategoriesPath(r *http.Request) bool {
-	validCategories := []string{"technology", "science", "art", "sport", "games"}
+func ValidateCategoriesPath(r *http.Request, all []models.Category) bool {
+	validCategories := make([]string, 0, len(all))
+	for _, category := range all {
+		validCategories = append(validCategories, category.Name)
+	}
 
 	for key := range r.URL.Query() {
 		if key != "categories" {

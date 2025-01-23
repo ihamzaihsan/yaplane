@@ -26,7 +26,7 @@ func ServeUserPosts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !isLoggedIn {
-		http.Redirect(w, r, "/login", http.StatusSeeOther) 
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
@@ -40,7 +40,11 @@ func ServeUserPosts(w http.ResponseWriter, r *http.Request) {
 		"isLoggedIn": isLoggedIn,
 		"userEmail":  userEmail,
 		"Posts":      posts,
-		"ViewTitle":  "My Posts", 
+		"ViewTitle":  "My Posts",
+	}
+	if err := addTopics(data); err != nil {
+		moderationError(w, err)
+		return
 	}
 
 	tmpl, err := template.ParseFiles("static/index.html")
