@@ -6,6 +6,7 @@
     <title>Profile | Yaplane Community</title>
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/static/style.css">
+
 </head>
 <body>
     <a class="skip-link" href="#content">Skip to content</a>
@@ -23,6 +24,7 @@
         <div class="profile-container fade-in">
             <h2><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#user-circle"></use></svg> About you</h2>
             <div class="profile-info">
+                <p><strong>Community role:</strong> {{.Role}}</p>
                 <p><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#user"></use></svg> <strong>Username:</strong> <span id="username">{{.Username}}</span></p>
                 <p><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#envelope"></use></svg> <strong>Email:</strong> <span id="email">{{.Email}}</span></p>
                 <p><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#calendar-alt"></use></svg> <strong>Join Date:</strong> <span id="joinDate">{{.JoinDate}}</span></p>
@@ -34,6 +36,7 @@
             </div>
 
             <div class="logout-container">
+                <p><a href="/moderation">Moderator requests, reports and community tools &rarr;</a></p>
                 <form action="/logout" method="post">
                     <button type="submit"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#sign-out-alt"></use></svg> Logout</button>
                 </form>

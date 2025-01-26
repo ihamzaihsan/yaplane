@@ -12,27 +12,27 @@ func ServeProfile(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
-	
+
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
 	sessionToken := cookie.Value
-	user, err := database.GetUserBySession(sessionToken) 
+	user, err := database.GetUserBySession(sessionToken)
 	if err != nil {
 		log.Printf("Error retrieving user: %v", err)
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	
 	profileData := ProfileData.ProfileData{
 		Username:     user.Username,
+		Role:         user.Role,
 		Email:        user.Email,
 		JoinDate:     user.JoinDate.Format("January 2, 2006"),
 		PostCount:    user.PostCount,
 		CommentCount: user.CommentCount,
-		IsLoggedIn:   true, 
+		IsLoggedIn:   true,
 	}
 
 	tmpl, err := template.ParseFiles("static/profile.html")
