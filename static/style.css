@@ -144,6 +144,19 @@ fieldset legend { font-size: 12px; font-weight: 550; margin-bottom: 8px; }
 .oauth-buttons a { display: block; padding: 11px 16px; border: 1px solid var(--line); border-radius: 8px; text-align: center; font-size: 12px; font-weight: 600; }
 .oauth-buttons a:hover { background: var(--surface); border-color: var(--ink); }
 .auth-divider { color: var(--muted); text-align: center; font-size: 12px; margin: 18px 0; }
+.moderation-page { max-width: 1000px; margin: 0 auto; padding: 24px; }
+.moderation-section { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; }
+.moderation-section h2 { margin-top: 0; }
+.moderation-item { border-top: 1px solid var(--line); padding: 18px 0; overflow-wrap: anywhere; }
+.moderation-content { white-space: pre-wrap; }
+.moderation-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.moderation-form { display: grid; gap: 12px; margin: 14px 0; }
+.moderation-form label { display: grid; gap: 6px; }
+.moderation-form input, .moderation-form textarea, .moderation-form select { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font: inherit; }
+.moderation-section button, .moderation-report button { padding: 9px 14px; border: 1px solid transparent; border-radius: 8px; background: var(--ink); color: #fff; font-size: 12px; font-weight: 600; }
+.moderation-report { margin-top: 18px; }
+.moderation-report summary { cursor: pointer; }
+button:disabled { opacity: .5; cursor: not-allowed; }
 .footer { text-align: center; font-size: 12px; color: var(--muted); margin-top: 22px; }
 .footer a { color: var(--accent); }
 .profile-container h2 { font-size: 24px; margin-bottom: 24px; }

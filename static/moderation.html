@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community moderation | Yaplane Community</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header>
+        <a href="/" class="brand" aria-label="Yaplane Community home"><span class="brand-mark" aria-hidden="true">y<span>&bull;</span></span>yaplane<span class="brand-period">.</span></a>
+        <nav aria-label="Main navigation"><ul><li><a href="/">Home</a></li><li><a href="/profile">Profile</a></li></ul></nav>
+    </header>
+    <main id="content" tabindex="-1" class="moderation-page">
+        <div class="page-heading"><span class="eyebrow">CARE FOR THE COMMON ROOM</span><h1>Community moderation.</h1><p>You are signed in as {{.User.Username}} ({{.User.Role}}).</p></div>
+
+        <section class="moderation-section">
+            <h2>Moderator requests</h2>
+            {{if eq .User.Role "user"}}
+            <p>Help keep discussions welcoming. Request the moderator role; an administrator will review it.</p>
+            <form action="/moderation/action" method="post"><input type="hidden" name="action" value="request-role"><button type="submit">Request moderator role</button></form>
+            {{end}}
+            {{range .Requests}}
+            <article class="moderation-item"><h3>{{.Username}}</h3><p>Status: <strong>{{.Status}}</strong></p>{{if .Reply}}<p>Administrator: {{.Reply}}</p>{{end}}
+                {{if and $.Admin (eq .Status "pending")}}
+                <form action="/moderation/action" method="post" class="moderation-form">
+                    <input type="hidden" name="id" value="{{.UserID}}">
+                    <label>Reply (optional)<textarea name="text" maxlength="2000" rows="2"></textarea></label>
+                    <div class="moderation-actions"><button name="action" value="accept-request">Accept request</button><button name="action" value="decline-request">Decline request</button></div>
+                </form>
+                {{end}}
+            </article>
+            {{else}}<p>No moderator requests.</p>{{end}}
+        </section>
+
+        {{if .Staff}}
+        <section class="moderation-section">
+            <h2>Awaiting approval</h2><p>Review submissions before publishing them. Rejecting a submission deletes it.</p>
+            {{range .Pending}}
+            <article class="moderation-item"><h3><a href="/post/{{.PostID}}">{{.Title}}</a></h3><p>{{.Kind}} by {{.Username}}</p><p class="moderation-content">{{.Content}}</p>
+                <form action="/moderation/action" method="post" class="moderation-actions">
+                    <input type="hidden" name="id" value="{{.ID}}">
+                    {{if eq .Kind "post"}}<button name="action" value="approve-post">Approve post</button><button name="action" value="delete-post" onclick="return confirm('Delete this submission?')">Reject post</button>
+                    {{else}}<button name="action" value="approve-comment">Approve comment</button><button name="action" value="reject-comment" onclick="return confirm('Delete this submission?')">Reject comment</button>{{end}}
+                </form>
+            </article>
+            {{else}}<p>Nothing is awaiting approval.</p>{{end}}
+        </section>
+        {{end}}
+
+        <section class="moderation-section">
+            <h2>{{if .Admin}}Moderator reports{{else}}Your reports and replies{{end}}</h2>
+            {{if .Staff}}<p>Open a discussion and use “Report to administrator” to flag irrelevant, obscene, illegal or insulting content.</p>{{end}}
+            {{range .Reports}}
+            <article class="moderation-item"><h3>{{if .PostID}}<a href="/post/{{.PostID}}">{{.Title}}</a>{{else}}{{.Title}} (post deleted){{end}}</h3><p>{{.Reason}} · reported by {{.Reporter}}</p><p class="moderation-content">{{.Message}}</p>
+                {{if .Reply}}<p><strong>Administrator:</strong> {{.Reply}}</p>
+                {{else if $.Admin}}<form action="/moderation/action" method="post" class="moderation-form"><input type="hidden" name="action" value="reply-report"><input type="hidden" name="id" value="{{.ID}}"><label>Reply to moderator<textarea name="text" maxlength="2000" rows="3" required></textarea></label><button type="submit">Send reply</button></form>
+                {{else}}<p>Awaiting an administrator's reply.</p>{{end}}
+            </article>
+            {{else}}<p>No reports.</p>{{end}}
+        </section>
+
+        {{if .Admin}}
+        <section class="moderation-section"><h2>Community roles</h2><p>Promote members to moderators or return moderators to the member role. Administrator roles are managed through local server access.</p>
+            {{range .Users}}<article class="moderation-item"><h3>{{.Username}}</h3><p>Role: {{.Role}}</p>{{if ne .Role "admin"}}<form action="/moderation/action" method="post"><input type="hidden" name="action" value="set-role"><input type="hidden" name="id" value="{{.ID}}">{{if eq .Role "user"}}<button name="text" value="moderator">Promote to moderator</button>{{else}}<button name="text" value="user">Demote to member</button>{{end}}</form>{{end}}</article>{{end}}
+        </section>
+        <section class="moderation-section"><h2>Topics</h2><p>Create topics for discussions. Topics attached to posts cannot be deleted.</p>
+            <form action="/moderation/action" method="post" class="moderation-form"><input type="hidden" name="action" value="create-category"><label>New topic<input name="text" maxlength="80" required></label><button type="submit">Create topic</button></form>
+            {{range .Categories}}<div class="moderation-item moderation-actions"><span>{{.Name}}</span><form action="/moderation/action" method="post"><input type="hidden" name="action" value="delete-category"><input type="hidden" name="id" value="{{.ID}}"><button type="submit" onclick="return confirm('Delete this topic?')">Delete topic</button></form></div>{{end}}
+        </section>
+        {{end}}
+    </main>
+</body>
+</html>
