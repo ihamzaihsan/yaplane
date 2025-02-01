@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/static/style.css"> 
+
     <title>Yaplane Community: Full Stack Discussion Forum</title>
 </head>
 
@@ -55,26 +56,7 @@
                             <form action="/" method="GET">
                                 <div class="checkbox-group">
                                     <div class="checkbox-column">
-                                        <div class="checkbox-item">
-                                            <input type="checkbox" id="tech" name="categories" value="technology">
-                                            <label for="tech">Technology</label>
-                                        </div>
-                                        <div class="checkbox-item">
-                                            <input type="checkbox" id="science" name="categories" value="science">
-                                            <label for="science">Science</label>
-                                        </div>
-                                        <div class="checkbox-item">
-                                            <input type="checkbox" id="art" name="categories" value="art">
-                                            <label for="art">Art</label>
-                                        </div>
-                                        <div class="checkbox-item">
-                                            <input type="checkbox" id="sport" name="categories" value="sport">
-                                            <label for="sport">Sport</label>
-                                        </div>
-                                        <div class="checkbox-item">
-                                            <input type="checkbox" id="games" name="categories" value="games">
-                                            <label for="games">Games</label>
-                                        </div>
+                                        {{range .TopicOptions}}<div class="checkbox-item"><input type="checkbox" id="topic-{{.ID}}" name="categories" value="{{.Name}}"><label for="topic-{{.ID}}">{{.Name}}</label></div>{{end}}
                                     </div>
                                 </div>
                                 <div class="button-group">
@@ -97,6 +79,7 @@
                      
                     </li>
                     {{if .isLoggedIn}}
+                    <li><a href="/moderation" class="button">Community tools</a></li>
                     <li>
                         <a href="/post/myPosts" class="button"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#user"></use></svg> My Posts</a>
                     </li>
@@ -126,6 +109,7 @@
                   <article class="post-card" onclick="window.location.href='/post/{{.ID}}'">
                       <div class="post-header">
                           <h3><a href="/post/{{.ID}}">{{.Title}}</a></h3>
+                          {{if eq .Status "pending"}}<p class="form-hint">Awaiting moderator approval</p>{{end}}
                           <div class="post-meta">
                               <span class="author"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#user"></use></svg> {{.Username}}</span>
                               <span class="categories">

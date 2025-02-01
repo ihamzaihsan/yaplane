@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/static/style.css">
+
     <title>New discussion | Yaplane Community</title>
 </head>
 <body class="createPost-style">
@@ -23,6 +24,7 @@
         <div class="page-heading"><span class="eyebrow">BRING YOUR PERSPECTIVE</span><h1>Start a discussion.</h1><p>A question, an idea, or something worth sharing.</p></div>
         <div class="post-container">
             <h2 class="createPost-title">What&rsquo;s on your mind?</h2>
+            {{if .Premoderate}}<p class="form-hint">Discussions from members need moderator approval before becoming public. Check My Posts for your submissions.</p>{{end}}
             <form action="/posts/create" method="post" enctype="multipart/form-data" class="createPost-form">
                 {{if .Error}}
                  <div class="error-message" role="alert">{{.Error}}</div>
@@ -46,11 +48,7 @@
                 <fieldset class="form-group">
                     <legend>Choose topics</legend>
                     <div class="category-options">
-                        <label><input type="checkbox" name="category_ids[]" value="1"> Science</label>
-                        <label><input type="checkbox" name="category_ids[]" value="2"> Technology</label>
-                        <label><input type="checkbox" name="category_ids[]" value="3"> Art</label>
-                        <label><input type="checkbox" name="category_ids[]" value="4"> Sport</label>
-                        <label><input type="checkbox" name="category_ids[]" value="5"> Games</label>
+                        {{range .TopicOptions}}<label><input type="checkbox" name="category_ids[]" value="{{.ID}}"> {{.Name}}</label>{{else}}<p>No topics are available. Ask an administrator to create one.</p>{{end}}
                     </div>
                 </fieldset>
                 
