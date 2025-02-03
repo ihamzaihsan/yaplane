@@ -7,6 +7,7 @@
     <title>{{.Post.Title}} | Yaplane Community</title>
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/static/style.css">
+
 </head>
 
 <body>
@@ -23,6 +24,7 @@
         <div class="page-heading"><a href="/">&larr; Back to discussions</a></div>
         <article class="post">
             <h1>{{.Post.Title}}</h1>
+            {{if eq .Post.Status "pending"}}<p class="form-hint">Awaiting moderator approval. This discussion is visible to its author and community staff.</p>{{end}}
             <p class="post-meta">
                 Posted by <strong>{{.Post.Username}}</strong>
                 in
@@ -43,15 +45,15 @@
                 {{.Post.Content}}
             </div>
             <div class="post-likes">
-                <button aria-label="Like" onclick="likePost('{{.Post.ID}}', true)">
+                <button aria-label="Like post" {{if or (not .IsLoggedIn) (ne .Post.Status "approved")}}disabled{{end}} onclick="likePost('{{.Post.ID}}', true)">
                     <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-up"></use></svg>
                 </button> <span class="like-count">{{.Likes}}</span> likes
-                <button aria-label="Dislike" onclick="likePost('{{.Post.ID}}', false)">
+                <button aria-label="Dislike post" {{if or (not .IsLoggedIn) (ne .Post.Status "approved")}}disabled{{end}} onclick="likePost('{{.Post.ID}}', false)">
                     <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-down"></use></svg>
                 </button> <span class="dislike-count">{{.Dislikes}}</span> dislikes
             </div>
 
-            {{if eq .Post.Username .CurrentUser}}
+            {{if or .Staff (eq .Post.Username .CurrentUser)}}
                 <div class="post-actions">
                     <form action="/delete-post" method="POST" onsubmit="return confirm('Are you sure you want to delete this post?');">
                         <input type="hidden" name="post_id" value="{{.Post.ID}}">
@@ -59,23 +61,34 @@
                     </form>
                 </div>
             {{end}}
+            {{if .Staff}}
+            <details class="moderation-report"><summary>Report to administrator</summary>
+                <form action="/moderation/action" method="post" class="moderation-form">
+                    <input type="hidden" name="action" value="report"><input type="hidden" name="id" value="{{.Post.ID}}">
+                    <label>Reason<select name="reason" required><option value="irrelevant">Irrelevant</option><option value="obscene">Obscene</option><option value="illegal">Illegal</option><option value="insulting">Insulting</option></select></label>
+                    <label>Details<textarea name="text" rows="3" maxlength="2000" required></textarea></label><button type="submit">Send report</button>
+                </form>
+            </details>
+            {{end}}
         </article>
         <h2 class="comments-name">The conversation</h2>
         <section class="comments">
             {{range .Comments}}
-            <div class="comment" data-id="{{.ID}}">
+            <div class="comment" data-id="{{.ID}}" id="comment-{{.ID}}">
                 <p class="comment-meta">
                     {{.Username}}
                 </p>
                 <p class="comment-content">{{.Content}}</p>
+                {{if eq .Status "pending"}}<p class="form-hint">Awaiting moderator approval</p>{{end}}
+                {{if and $.Admin (ne .Username $.CurrentUser)}}<form action="/moderation/action" method="post"><input type="hidden" name="action" value="delete-comment"><input type="hidden" name="id" value="{{.ID}}"><button type="submit" class="delete-btn" onclick="return confirm('Delete this comment?')">Delete comment</button></form>{{end}}
                 <p class="comment-meta">
                     on {{.CreatedAt.Format "Jan 02, 2006 at 15:04"}}
                 </p>
                 <div class="comment-likes">
-                    <button aria-label="Like" onclick="likeComment('{{.ID}}', true)">
+                    <button aria-label="Like comment" {{if or (not $.IsLoggedIn) (ne .Status "approved") (ne $.Post.Status "approved")}}disabled{{end}} onclick="likeComment('{{.ID}}', true)">
                         <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-up"></use></svg>
                     </button> <span class="like-count">{{.Likes}}</span> likes
-                    <button aria-label="Dislike" onclick="likeComment('{{.ID}}', false)">
+                    <button aria-label="Dislike comment" {{if or (not $.IsLoggedIn) (ne .Status "approved") (ne $.Post.Status "approved")}}disabled{{end}} onclick="likeComment('{{.ID}}', false)">
                         <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-down"></use></svg>
                     </button> <span class="dislike-count">{{.Dislikes}}</span> dislikes
                 </div>
@@ -86,15 +99,20 @@
 
         </section>
 
+        {{if eq .Post.Status "approved"}}
         <section class="add-comment">
             <h2>Add your perspective</h2>
+            {{if .IsLoggedIn}}
+            {{if .Premoderate}}<p class="form-hint">Your comment will become public after moderator approval.</p>{{end}}
             <form action="/post/comment" method="POST">
                 <label for="commentContent">Your comment</label>
                 <textarea id="commentContent" name="content" rows="5" placeholder="Add your comment..." required></textarea>
                 <input type="hidden" name="post_id" value="{{.Post.ID}}">
                 <button type="submit">Submit Comment</button>
             </form>
+            {{else}}<p><a href="/login">Sign in</a> to join the conversation.</p>{{end}}
         </section>
+        {{end}}
 
     </main>
 
@@ -118,11 +136,11 @@
             })
             .then(data => {
                 document.querySelector('.post-likes').innerHTML = `
-                    <button aria-label="Like" onclick="likePost('${postId}', true)">
+                    <button aria-label="Like post" onclick="likePost('${postId}', true)">
                         <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-up"></use></svg>
                     </button>
                     <span class="like-count">${data.likes}</span> likes
-                    <button aria-label="Dislike" onclick="likePost('${postId}', false)">
+                    <button aria-label="Dislike post" onclick="likePost('${postId}', false)">
                         <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-down"></use></svg>
                     </button>
                     <span class="dislike-count">${data.dislikes}</span> dislikes
@@ -147,10 +165,10 @@
             }
 
             likesElement.innerHTML = `
-                <button aria-label="Like" onclick="likeComment('${commentId}', true)">
+                <button aria-label="Like comment" onclick="likeComment('${commentId}', true)">
                     <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-up"></use></svg>
                 </button> <span class="like-count">${currentLikes}</span> likes
-                <button aria-label="Dislike" onclick="likeComment('${commentId}', false)">
+                <button aria-label="Dislike comment" onclick="likeComment('${commentId}', false)">
                     <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-down"></use></svg>
                 </button> <span class="dislike-count">${currentDislikes}</span> dislikes
             `;
@@ -173,10 +191,10 @@
             })
             .then(data => {
                 likesElement.innerHTML = `
-                    <button aria-label="Like" onclick="likeComment('${commentId}', true)">
+                    <button aria-label="Like comment" onclick="likeComment('${commentId}', true)">
                         <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-up"></use></svg>
                     </button> <span class="like-count">${data.likes}</span> likes
-                    <button aria-label="Dislike" onclick="likeComment('${commentId}', false)">
+                    <button aria-label="Dislike comment" onclick="likeComment('${commentId}', false)">
                         <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-down"></use></svg>
                     </button> <span class="dislike-count">${data.dislikes}</span> dislikes
                 `;
@@ -189,10 +207,10 @@
                     currentDislikes--;
                 }
                 likesElement.innerHTML = `
-                    <button aria-label="Like" onclick="likeComment('${commentId}', true)">
+                    <button aria-label="Like comment" onclick="likeComment('${commentId}', true)">
                         <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-up"></use></svg>
                     </button> <span class="like-count">${currentLikes}</span> likes
-                    <button aria-label="Dislike" onclick="likeComment('${commentId}', false)">
+                    <button aria-label="Dislike comment" onclick="likeComment('${commentId}', false)">
                         <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#thumbs-down"></use></svg>
                     </button> <span class="dislike-count">${currentDislikes}</span> dislikes
                 `;
