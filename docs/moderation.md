@@ -49,3 +49,15 @@ For Docker, pass `-e FORUM_PREMODERATE=true`. Moderators and administrators publ
 Pending posts appear in the author's My Posts page and the staff approval queue. The author and staff can preview the post and its image. Guests and other members cannot retrieve pending posts or their attached images through the homepage, filters, direct URLs, or reaction endpoints. Pending comments are visible only to their author and staff until approved. Comments and reactions cannot be added to a pending post. Reactions cannot be added to a pending comment.
 
 Staff approve content from `/moderation`. Rejecting content deletes it. Turning review off affects new submissions; already pending submissions still need approval or rejection. Review is manual; there is no automatic profanity classifier or keyword censorship.
+
+## Data and request handling
+
+The additive migration gives existing users the member role and existing posts/comments the approved status. It adds request/report tables and pending-content indexes. Existing accounts, sessions, provider identities, discussions, reactions and images are preserved. Default topics are seeded once and their state recorded in `forum_settings`.
+
+Moderation actions use the existing HTTPS, session-expiration, origin checks, request-size limits and rate limiter. Authorization is checked again inside each mutation transaction; hidden buttons are not the permission boundary. Requests and role changes are atomic. Reports/replies have a 2,000-byte server limit, and all submitted content is escaped through Go templates. Invalid fields return 400, unauthorized actions 403, missing posts 404, and duplicate/stale/in-use operations 409. Technical failures return 500 without exposing SQL errors.
+
+No third-party dependency or frontend library was added. New controls use ordinary server-rendered forms. Existing image-upload size-boundary and unused-file limitations remain as recorded in [image-upload-review.md](image-upload-review.md); deleting a post does not delete its physical uploaded file. Replies are visible on the moderation page and are not push notifications.
+
+## Verification
+
+Build and check the source with `go build ./...` and `go vet ./...`. The automated test files were removed during repository cleanup; their earlier versions remain in Git history. These commands do not verify browser workflows or live OAuth providers.
