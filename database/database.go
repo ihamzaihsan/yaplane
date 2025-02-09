@@ -153,5 +153,8 @@ func CreateTables(db *sql.DB) error {
 	if err := migrateModeration(db); err != nil {
 		return fmt.Errorf("moderation schema: %w", err)
 	}
+	if err := migrateActivity(db); err != nil {
+		return fmt.Errorf("activity schema: %w", err)
+	}
 	return nil
 }
