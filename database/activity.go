@@ -3,6 +3,7 @@ package Forum
 import (
 	"database/sql"
 	"forum/models"
+	"strconv"
 )
 
 func migrateActivity(db *sql.DB) error {
@@ -40,6 +41,51 @@ func migrateActivity(db *sql.DB) error {
 	CREATE TRIGGER IF NOT EXISTS hide_pending_comment_notifications AFTER UPDATE OF status ON comments
 	WHEN NEW.status='pending' BEGIN DELETE FROM notifications WHERE comment_id=NEW.id; END;`)
 	return err
+}
+
+func Activity(user *models.User) (models.ActivityPage, error) {
+	data := models.ActivityPage{User: user}
+	var err error
+	data.Posts, err = GetUserPosts(strconv.Itoa(user.ID))
+	if err != nil {
+		return data, err
+	}
+	staff := user.Role == "moderator" || user.Role == "admin"
+	rows, err := DBInstance.DB.Query(`SELECT c.id,c.post_id,c.content,c.status,
+		CASE WHEN p.status='approved' OR p.user_id=? OR ? THEN p.title ELSE 'Discussion awaiting review' END,
+		(p.status='approved' OR p.user_id=? OR ?)
+		FROM comments c JOIN posts p ON p.id=c.post_id WHERE c.user_id=? ORDER BY c.created_at DESC,c.id DESC`, user.ID, staff, user.ID, staff, user.ID)
+	if err != nil {
+		return data, err
+	}
+	for rows.Next() {
+		var item models.ActivityComment
+		if err := rows.Scan(&item.ID, &item.PostID, &item.Content, &item.Status, &item.Title, &item.CanView); err != nil {
+			rows.Close()
+			return data, err
+		}
+		data.Comments = append(data.Comments, item)
+	}
+	err = rows.Err()
+	rows.Close()
+	if err != nil {
+		return data, err
+	}
+	rows, err = DBInstance.DB.Query(`SELECT p.id,COALESCE(l.comment_id,0),p.title,COALESCE(c.content,''),l.is_like
+		FROM likes l LEFT JOIN comments c ON c.id=l.comment_id JOIN posts p ON p.id=COALESCE(l.post_id,c.post_id)
+		WHERE l.user_id=? AND p.status='approved' AND (l.comment_id IS NULL OR c.status='approved') ORDER BY l.created_at DESC,l.id DESC`, user.ID)
+	if err != nil {
+		return data, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var item models.ActivityReaction
+		if err := rows.Scan(&item.PostID, &item.CommentID, &item.Title, &item.Content, &item.IsLike); err != nil {
+			return data, err
+		}
+		data.Reactions = append(data.Reactions, item)
+	}
+	return data, rows.Err()
 }
 
 func NotificationCounts(userID int) (unread, latest int, err error) {
