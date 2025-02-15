@@ -124,3 +124,41 @@ func ReadNotifications(userID int) error {
 
 // Serialize reaction replacement with its notification; retries of the same choice
 // keep one reaction and do not create duplicate notifications.
+func RecordReaction(userID, id int, comment, isLike bool) (int, int, error) {
+	tx, err := DBInstance.DB.Begin()
+	if err != nil {
+		return 0, 0, err
+	}
+	defer tx.Rollback()
+	field := "post_id"
+	query := "SELECT EXISTS(SELECT 1 FROM posts WHERE id=? AND status='approved')"
+	if comment {
+		field = "comment_id"
+		query = "SELECT EXISTS(SELECT 1 FROM comments c JOIN posts p ON p.id=c.post_id WHERE c.id=? AND c.status='approved' AND p.status='approved')"
+	}
+	var exists bool
+	if err := tx.QueryRow(query, id).Scan(&exists); err != nil {
+		return 0, 0, err
+	}
+	if !exists {
+		return 0, 0, ErrNotFound
+	}
+	var hasReaction bool
+	err = tx.QueryRow("SELECT EXISTS(SELECT 1 FROM likes WHERE user_id=? AND "+field+"=?)", userID, id).Scan(&hasReaction)
+	if err != nil {
+		return 0, 0, err
+	}
+	if !hasReaction {
+		_, err = tx.Exec("INSERT INTO likes(user_id,"+field+",is_like) VALUES(?,?,?)", userID, id, isLike)
+	} else {
+		_, err = tx.Exec("UPDATE likes SET is_like=? WHERE user_id=? AND "+field+"=? AND is_like!=?", isLike, userID, id, isLike)
+	}
+	if err != nil {
+		return 0, 0, err
+	}
+	var likes, dislikes int
+	if err := tx.QueryRow("SELECT COALESCE(SUM(is_like=1),0),COALESCE(SUM(is_like=0),0) FROM likes WHERE "+field+"=?", id).Scan(&likes, &dislikes); err != nil {
+		return 0, 0, err
+	}
+	return likes, dislikes, tx.Commit()
+}

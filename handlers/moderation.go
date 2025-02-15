@@ -118,20 +118,3 @@ func addTopics(data map[string]interface{}) error {
 	data["TopicOptions"] = categories
 	return err
 }
-
-func publishedTarget(w http.ResponseWriter, r *http.Request, id int, comment bool) bool {
-	query := "SELECT EXISTS(SELECT 1 FROM posts WHERE id=? AND status='approved')"
-	if comment {
-		query = "SELECT EXISTS(SELECT 1 FROM comments c JOIN posts p ON p.id=c.post_id WHERE c.id=? AND c.status='approved' AND p.status='approved')"
-	}
-	var exists bool
-	if err := database.DBInstance.DB.QueryRow(query, id).Scan(&exists); err != nil {
-		moderationError(w, err)
-		return false
-	}
-	if !exists {
-		http.NotFound(w, r)
-		return false
-	}
-	return true
-}
