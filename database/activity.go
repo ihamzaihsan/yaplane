@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"forum/models"
 	"strconv"
+	"strings"
 )
 
 func migrateActivity(db *sql.DB) error {
@@ -161,4 +162,128 @@ func RecordReaction(userID, id int, comment, isLike bool) (int, int, error) {
 		return 0, 0, err
 	}
 	return likes, dislikes, tx.Commit()
+}
+
+func Editable(userID, id int, kind string) (models.EditContent, error) {
+	item := models.EditContent{ID: id, Kind: kind}
+	var owner int
+	var err error
+	switch kind {
+	case "post":
+		err = DBInstance.DB.QueryRow("SELECT user_id,title,content,COALESCE(image_path,''),status FROM posts WHERE id=?", id).Scan(&owner, &item.Title, &item.Content, &item.ImagePath, &item.Status)
+	case "comment":
+		err = DBInstance.DB.QueryRow("SELECT user_id,content,status FROM comments WHERE id=?", id).Scan(&owner, &item.Content, &item.Status)
+	default:
+		return item, ErrInvalid
+	}
+	if err != nil {
+		return item, err
+	}
+	if owner != userID {
+		return models.EditContent{}, ErrForbidden
+	}
+	if kind == "post" {
+		item.Topics, err = GetAllCategories()
+		if err != nil {
+			return item, err
+		}
+		item.Selected = make(map[int]bool)
+		rows, err := DBInstance.DB.Query("SELECT category_id FROM post_categories WHERE post_id=?", id)
+		if err != nil {
+			return item, err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var category int
+			if err := rows.Scan(&category); err != nil {
+				return item, err
+			}
+			item.Selected[category] = true
+		}
+		err = rows.Err()
+	}
+	return item, err
+}
+
+func EditOwned(userID, id int, kind, title, content string, categories []int) error {
+	title, content = strings.TrimSpace(title), strings.TrimSpace(content)
+	if content == "" || len(content) > 20000 || (kind == "post" && (title == "" || len(title) > 200 || len(categories) == 0)) {
+		return ErrInvalid
+	}
+	table := "posts"
+	if kind == "comment" {
+		table = "comments"
+	} else if kind != "post" {
+		return ErrInvalid
+	}
+	tx, err := DBInstance.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	var owner int
+	var status, role string
+	if err := tx.QueryRow("SELECT c.user_id,c.status,u.role FROM "+table+" c JOIN users u ON u.id=c.user_id WHERE c.id=?", id).Scan(&owner, &status, &role); err != nil {
+		return err
+	}
+	if owner != userID {
+		return ErrForbidden
+	}
+	if status != "pending" {
+		status = SubmissionStatus(role)
+	}
+	if kind == "post" {
+		seen := make(map[int]bool)
+		for _, category := range categories {
+			if category <= 0 || seen[category] {
+				return ErrInvalid
+			}
+			seen[category] = true
+		}
+		if _, err := tx.Exec("UPDATE posts SET title=?,content=?,status=? WHERE id=?", title, content, status, id); err != nil {
+			return err
+		}
+		if _, err := tx.Exec("DELETE FROM post_categories WHERE post_id=?", id); err != nil {
+			return err
+		}
+		for _, category := range categories {
+			result, err := tx.Exec("INSERT INTO post_categories(post_id,category_id) SELECT ?,id FROM categories WHERE id=?", id, category)
+			if err != nil {
+				return err
+			}
+			n, err := result.RowsAffected()
+			if err != nil {
+				return err
+			}
+			if n == 0 {
+				return ErrInvalid
+			}
+		}
+	} else if _, err := tx.Exec("UPDATE comments SET content=?,status=? WHERE id=?", content, status, id); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func DeleteOwnComment(userID, id int) error {
+	tx, err := DBInstance.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	var owner int
+	if err := tx.QueryRow("SELECT user_id FROM comments WHERE id=?", id).Scan(&owner); err != nil {
+		return err
+	}
+	var role string
+	if err := tx.QueryRow("SELECT role FROM users WHERE id=?", userID).Scan(&role); err != nil {
+		return err
+	}
+	if owner != userID && role != "admin" {
+		return ErrForbidden
+	}
+	if _, err := tx.Exec("DELETE FROM comments WHERE id=?", id); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
