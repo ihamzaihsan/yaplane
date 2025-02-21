@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My activity | Yaplane Community</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header><a href="/" class="brand" aria-label="Yaplane Community home"><span class="brand-mark" aria-hidden="true">y<span>&bull;</span></span>yaplane<span class="brand-period">.</span></a><nav aria-label="Main navigation"><ul><li><a href="/">Home</a></li><li><a href="/notifications">Notifications</a></li><li><a href="/profile">Profile</a></li></ul></nav></header>
+    <main id="content" tabindex="-1" class="moderation-page">
+        <div class="page-heading"><span class="eyebrow">YOUR CONTRIBUTIONS</span><h1>My activity.</h1><p>Your discussions, comments and reactions in one place.</p></div>
+        <section class="moderation-section"><h2>My discussions</h2>
+            {{range .Posts}}<article class="moderation-item"><h3><a href="/post/{{.ID}}">{{.Title}}</a></h3><p>{{if eq .Status "pending"}}Awaiting moderator approval{{else}}Published{{end}} · {{.CreatedAt.Format "Jan 02, 2006"}}</p>
+                <div class="moderation-actions"><a href="/posts/edit?id={{.ID}}">Edit discussion</a><form action="/delete-post" method="post" onsubmit="return confirm('Delete this discussion and its comments?')"><input type="hidden" name="post_id" value="{{.ID}}"><button type="submit">Delete discussion</button></form></div>
+            </article>{{else}}<p>No discussions yet. <a href="/posts/create">Start one.</a></p>{{end}}
+        </section>
+        <section class="moderation-section"><h2>My comments</h2>
+            {{range .Comments}}<article class="moderation-item"><h3>{{if .CanView}}<a href="/post/{{.PostID}}#comment-{{.ID}}">{{.Title}}</a>{{else}}{{.Title}}{{end}}</h3><p class="moderation-content">{{.Content}}</p>{{if eq .Status "pending"}}<p class="form-hint">Awaiting moderator approval</p>{{end}}
+                <div class="moderation-actions"><a href="/comments/edit?id={{.ID}}">Edit comment</a><form action="/comments/delete" method="post" onsubmit="return confirm('Delete this comment?')"><input type="hidden" name="id" value="{{.ID}}"><button type="submit">Delete comment</button></form></div>
+            </article>{{else}}<p>You haven't commented yet.</p>{{end}}
+        </section>
+        <section class="moderation-section"><h2>My reactions</h2><p>Your current likes and dislikes.</p>
+            {{range .Reactions}}<article class="moderation-item"><h3><a href="/post/{{.PostID}}{{if .CommentID}}#comment-{{.CommentID}}{{end}}">{{.Title}}</a></h3><p>{{if .IsLike}}Liked{{else}}Disliked{{end}} {{if .CommentID}}a comment{{else}}this discussion{{end}}</p>{{if .CommentID}}<p class="moderation-content">{{.Content}}</p>{{end}}</article>{{else}}<p>No reactions yet.</p>{{end}}
+        </section>
+    </main>
+</body>
+</html>

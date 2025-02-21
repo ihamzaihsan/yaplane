@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications | Yaplane Community</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-latest="{{.Latest}}">
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header><a href="/" class="brand" aria-label="Yaplane Community home"><span class="brand-mark" aria-hidden="true">y<span>&bull;</span></span>yaplane<span class="brand-period">.</span></a><nav aria-label="Main navigation"><ul><li><a href="/">Home</a></li><li><a href="/activity">Activity</a></li><li><a href="/profile">Profile</a></li></ul></nav></header>
+    <main id="content" tabindex="-1" class="moderation-page">
+        <div class="page-heading"><span class="eyebrow">THE CONVERSATION CONTINUES</span><h1>Notifications.</h1><p><span id="unread-count">{{.Unread}}</span> unread · showing your latest 100 notifications.</p></div>
+        <section class="moderation-section">
+            <h2>On your discussions</h2>
+            {{if .Unread}}<form action="/notifications/read" method="post"><button type="submit">Mark all as read</button></form>{{end}}
+            {{range .Items}}<article class="moderation-item {{if not .Read}}notification-unread{{end}}"><p><strong>{{.Actor}}</strong> {{.Kind}}{{if eq .Kind "commented"}} on{{end}} your discussion <a href="/post/{{.PostID}}">{{.Title}}</a>.</p><p class="form-hint">{{.CreatedAt.Format "Jan 02, 2006 at 15:04"}}{{if not .Read}} · Unread{{end}}</p></article>{{else}}<p>No notifications yet.</p>{{end}}
+        </section>
+    </main>
+    
+</body>
+</html>
