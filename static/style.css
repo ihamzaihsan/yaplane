@@ -156,6 +156,8 @@ fieldset legend { font-size: 12px; font-weight: 550; margin-bottom: 8px; }
 .moderation-section button, .moderation-report button { padding: 9px 14px; border: 1px solid transparent; border-radius: 8px; background: var(--ink); color: #fff; font-size: 12px; font-weight: 600; }
 .moderation-report { margin-top: 18px; }
 .moderation-report summary { cursor: pointer; }
+.notification-unread { border-left: 3px solid var(--ink); padding-left: 14px; }
+.moderation-form .category-options input { width: auto; }
 button:disabled { opacity: .5; cursor: not-allowed; }
 .footer { text-align: center; font-size: 12px; color: var(--muted); margin-top: 22px; }
 .footer a { color: var(--accent); }

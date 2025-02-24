@@ -34,6 +34,11 @@ func ServeProfile(w http.ResponseWriter, r *http.Request) {
 		CommentCount: user.CommentCount,
 		IsLoggedIn:   true,
 	}
+	profileData.Unread, _, err = database.NotificationCounts(user.ID)
+	if err != nil {
+		moderationError(w, err)
+		return
+	}
 
 	tmpl, err := template.ParseFiles("static/profile.html")
 	if err != nil {

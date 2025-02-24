@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit {{.Kind}} | Yaplane Community</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header><a href="/" class="brand" aria-label="Yaplane Community home"><span class="brand-mark" aria-hidden="true">y<span>&bull;</span></span>yaplane<span class="brand-period">.</span></a><nav aria-label="Main navigation"><ul><li><a href="/">Home</a></li><li><a href="/activity">Activity</a></li></ul></nav></header>
+    <main id="content" tabindex="-1" class="moderation-page">
+        <div class="page-heading"><span class="eyebrow">REFINE YOUR PERSPECTIVE</span><h1>Edit {{.Kind}}.</h1><p>Update your contribution to the conversation.</p></div>
+        <section class="moderation-section">
+            {{if .Error}}<p class="error-message" role="alert">{{.Error}}</p>{{end}}
+            {{if or .ReviewRequired (eq .Status "pending")}}<p class="form-hint">This submission needs moderator approval after saving.</p>{{end}}
+            <form action="{{if eq .Kind "post"}}/posts/edit{{else}}/comments/edit{{end}}" method="post" class="moderation-form">
+                <input type="hidden" name="id" value="{{.ID}}">
+                {{if eq .Kind "post"}}
+                <label>Title<input name="title" value="{{.Title}}" maxlength="200" required></label>
+                {{end}}
+                <label>Content<textarea name="content" rows="8" maxlength="20000" required>{{.Content}}</textarea></label>
+                {{if eq .Kind "post"}}
+                {{if .ImagePath}}<p class="form-hint">Your attached image will be kept.</p>{{end}}
+                <fieldset><legend>Topics</legend><div class="category-options">{{range .Topics}}<label><input type="checkbox" name="category_ids[]" value="{{.ID}}" {{if index $.Selected .ID}}checked{{end}}> {{.Name}}</label>{{end}}</div></fieldset>
+                {{end}}
+                <div class="moderation-actions"><button type="submit">Save changes</button><a href="/activity">Cancel</a></div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

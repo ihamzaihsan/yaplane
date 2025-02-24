@@ -7,5 +7,6 @@ type ProfileData struct {
 	JoinDate     string
 	PostCount    int
 	CommentCount int
+	Unread       int
 	IsLoggedIn   bool
 }

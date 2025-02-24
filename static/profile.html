@@ -30,6 +30,8 @@
                 <p><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#calendar-alt"></use></svg> <strong>Join Date:</strong> <span id="joinDate">{{.JoinDate}}</span></p>
             </div>
             <div class="profile-stats">
+                <p><a href="/activity">View and manage my activity &rarr;</a></p>
+                <p><a href="/notifications">Notifications ({{.Unread}} unread) &rarr;</a></p>
                 <h3><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#chart-bar"></use></svg> Activity</h3>
                 <p><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#pen"></use></svg> <strong>Posts:</strong> <span id="postCount">{{.PostCount}}</span></p>
                 <p><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#comment"></use></svg> <strong>Comments:</strong> <span id="commentCount">{{.CommentCount}}</span></p>
