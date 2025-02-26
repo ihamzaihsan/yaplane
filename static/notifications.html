@@ -18,6 +18,17 @@
             {{range .Items}}<article class="moderation-item {{if not .Read}}notification-unread{{end}}"><p><strong>{{.Actor}}</strong> {{.Kind}}{{if eq .Kind "commented"}} on{{end}} your discussion <a href="/post/{{.PostID}}">{{.Title}}</a>.</p><p class="form-hint">{{.CreatedAt.Format "Jan 02, 2006 at 15:04"}}{{if not .Read}} · Unread{{end}}</p></article>{{else}}<p>No notifications yet.</p>{{end}}
         </section>
     </main>
-    
+    <script>
+        setInterval(async function () {
+            if (document.hidden) return;
+            try {
+                const response = await fetch('/notifications/count');
+                if (!response.ok || response.redirected) return;
+                const counts = await response.json();
+                if (counts.latest !== Number(document.body.dataset.latest)) location.reload();
+                else document.getElementById('unread-count').textContent = counts.unread;
+            } catch (_) {}
+        }, 15000);
+    </script>
 </body>
 </html>
