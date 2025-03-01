@@ -15,3 +15,13 @@ The page includes edit/delete controls for your own posts and comments. Discussi
 Post editing changes the title, content and topics while retaining the existing image, author, ID and creation time. Comment editing changes its content. At least one valid topic is required for a post; unknown or duplicate topic IDs are rejected without changing the original data. Titles are limited to 200 bytes and content to 20,000 bytes. Invalid edits return HTTP 400 with a message and retain the submitted text in the form.
 
 Only authors can edit, including when another user is an administrator. Authors can delete their own comments; administrators retain their existing right to delete anyone's comments. Existing moderator/admin post-deletion permissions remain in place. Ownership and roles are checked in SQLite transactions, independently of which controls appear in the browser. Guests cannot access private activity, notifications or editing endpoints.
+
+## Notifications
+
+Open **Notifications** from the sidebar or profile. The profile shows an unread count. The inbox displays the latest 100 notifications, identifies who reacted/commented and links to the affected discussion. **Mark all as read** saves read state for your account, including older notifications outside the displayed window.
+
+Post owners receive notifications when another user likes, dislikes or comments on their posts. Self-reactions/comments do not create notifications. Repeating the same reaction does not create another alert; switching like/dislike does. Reactions on comments appear in activity, but do not send additional notifications because the subject requires notifications for reactions on posts.
+
+Notifications are created in the same SQLite write as the reaction/comment through triggers. A failed notification write rolls back the associated change. Reaction writes are serialized in transactions, preventing concurrent requests from creating duplicate reactions or alerts. Inbox entries and read state persist across sessions and server restarts. Existing reactions/comments are not backfilled into notifications.
+
+While the inbox is open and visible, a short plain-JavaScript check polls `/notifications/count` every 15 seconds. A new event refreshes the inbox; unread-count changes update the displayed count. This is polling, not a WebSocket connection or browser push notification. Without JavaScript, the page still works with ordinary refreshes. Other pages display their server-rendered state until refreshed.
