@@ -25,3 +25,17 @@ Post owners receive notifications when another user likes, dislikes or comments 
 Notifications are created in the same SQLite write as the reaction/comment through triggers. A failed notification write rolls back the associated change. Reaction writes are serialized in transactions, preventing concurrent requests from creating duplicate reactions or alerts. Inbox entries and read state persist across sessions and server restarts. Existing reactions/comments are not backfilled into notifications.
 
 While the inbox is open and visible, a short plain-JavaScript check polls `/notifications/count` every 15 seconds. A new event refreshes the inbox; unread-count changes update the displayed count. This is polling, not a WebSocket connection or browser push notification. Without JavaScript, the page still works with ordinary refreshes. Other pages display their server-rendered state until refreshed.
+
+## Moderation integration
+
+With `FORUM_PREMODERATE=true`, editing a member's approved post/comment returns it to the pending state. Already pending content stays pending even if review is later disabled. Staff editing their own approved content retain immediate publication. Posts and their attached images stay private during review; pending comments are hidden from other members and guests.
+
+Pending comments do not notify the post owner until approved. If an approved comment is edited back into review, its comment notifications are removed until reapproval. Publish the parent post before approving its pending comments; otherwise approval returns HTTP 409. This prevents a comment from being marked public while its discussion is still awaiting review.
+
+Activity retains your own comment text even if its parent post becomes private. In that case, an unauthorized viewer sees “Discussion awaiting review” instead of the pending post's title or link. Reactions referencing pending posts/comments are hidden until publication resumes.
+
+Removing posts/comments cascades to their corresponding notifications, avoiding links to deleted content. Physical uploaded-file cleanup remains the existing limitation documented in [image-upload-review.md](image-upload-review.md). The earlier security, authentication and moderation setup still applies; no new credentials or environment settings are needed.
+
+## Verification
+
+Build and check the source with `go build ./...` and `go vet ./...`. The automated test files were removed during repository cleanup; their earlier versions remain in Git history. These commands do not verify browser workflows or live OAuth providers.
