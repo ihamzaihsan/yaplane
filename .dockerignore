@@ -3,3 +3,8 @@
 .env
 yaplane-live
 Project objective and instructions
+data
+Forum.db
+Forum.db-*
+HTTPS
+static/uploads

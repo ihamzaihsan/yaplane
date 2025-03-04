@@ -6,7 +6,7 @@ This extension keeps the Go-rendered pages, routes, SQLite schema, registration,
 
 Run from the repository root with Go 1.22 or newer, CGO enabled, and a C compiler on PATH.
 
-The original certificate in `HTTPS/` expired on October 24, 2025 and has no localhost subject alternative name. Its tracked files are left untouched. Generate a new self-signed certificate and key using the standard Go library:
+The original certificate in `HTTPS/` expired on October 24, 2025 and has no localhost subject alternative name. Its files are retained only as historical material and are excluded from Docker images. Generate a new self-signed certificate and key using the standard Go library:
 
 ```sh
 go run ./cmd/certgen
@@ -30,7 +30,7 @@ TLS_CERT_FILE=.local/server.crt TLS_KEY_FILE=.local/server.key go run .
 
 Open **https://localhost:8080**. A self-signed certificate still needs local trust or a browser exception. For public hosting, supply a certificate and key issued by a trusted CA.
 
-`.env.example` documents the environment values; the server does not load `.env` files. `FORUM_ADDR` optionally changes the listener address, for example `127.0.0.1:8443`. Defaults retain `:8080`, `HTTPS/server.crt`, and `HTTPS/server.key` for compatibility. `.local/` and `.env` are excluded from both Git and the Docker build context.
+`.env.example` documents the environment values; the server does not load `.env` files. `FORUM_ADDR` optionally changes the listener address, for example `127.0.0.1:8443`. Defaults are `:8080`, `.local/server.crt`, and `.local/server.key`. `.local/` and `.env` are excluded from both Git and the Docker build context.
 
 For Docker, build with `docker build -f Docker/Dockerfile -t yaplane .`. Mount the absolute path to the generated `.local` directory read-only at `/certs`, and pass `TLS_CERT_FILE=/certs/server.crt` and `TLS_KEY_FILE=/certs/server.key` to the container. For example, in PowerShell:
 

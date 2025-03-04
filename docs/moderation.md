@@ -15,10 +15,10 @@ Use `-db` if the database has another path. The command refuses a missing databa
 For Docker, use the command against the running container's database:
 
 ```sh
-docker exec <container-name> go run ./cmd/admin -email your-account@example.com
+docker compose exec forum /app/admin -email your-account@example.com
 ```
 
-The current Dockerfile retains Go, so this command is available inside the container. Use the container's database when the application runs there; promoting an account in a separate host database does not update the container.
+The Docker image includes the compiled administrator command. Use the container's database when the application runs there; promoting an account in a separate host database does not update the container.
 
 ## Moderation workflow
 

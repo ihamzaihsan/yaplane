@@ -3,6 +3,10 @@ package Forum
 import (
 	"database/sql"
 	"fmt"
+	"net/url"
+	"os"
+	"path/filepath"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -13,34 +17,51 @@ type DataBase struct {
 
 var DBInstance DataBase
 
+func DatabasePath() string {
+	if path := os.Getenv("DATABASE_PATH"); path != "" {
+		return path
+	}
+	return "data/forum.db"
+}
+
 func InitDB() error {
-	var err error
-	DBInstance.DB, err = sql.Open("sqlite3", "Forum.db?_foreign_keys=on&_busy_timeout=5000")
-	if err != nil {
-		return fmt.Errorf("error opening database: %v", err)
+	db, err := Open(DatabasePath())
+	if err == nil {
+		DBInstance.DB = db
 	}
+	return err
+}
 
+// Open initializes a database without importing user data or demo content.
+func Open(path string) (*sql.DB, error) {
+	if strings.TrimSpace(path) == "" {
+		return nil, fmt.Errorf("database path must not be empty")
+	}
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+	if err := os.MkdirAll(filepath.Dir(abs), 0700); err != nil {
+		return nil, err
+	}
+	uriPath := filepath.ToSlash(abs)
+	if !strings.HasPrefix(uriPath, "/") {
+		uriPath = "/" + uriPath
+	}
+	dsn := (&url.URL{Scheme: "file", Path: uriPath, RawQuery: "_foreign_keys=on&_busy_timeout=5000"}).String()
+	db, err := sql.Open("sqlite3", dsn)
+	if err != nil {
+		return nil, fmt.Errorf("open database: %w", err)
+	}
 	// A single connection serializes SQLite writes and session replacement transactions.
-	DBInstance.DB.SetMaxOpenConns(1)
-	err = DBInstance.DB.Ping()
-	if err != nil {
-		return fmt.Errorf("error pinging database: %v", err)
+	db.SetMaxOpenConns(1)
+	for _, initialize := range []func(*sql.DB) error{(*sql.DB).Ping, CreateTables, AddDefaultCategories} {
+		if err := initialize(db); err != nil {
+			db.Close()
+			return nil, fmt.Errorf("initialize database: %w", err)
+		}
 	}
-
-	_, err = DBInstance.DB.Exec("PRAGMA foreign_keys = ON;")
-	if err != nil {
-		return fmt.Errorf("error enabling foreign keys: %v", err)
-	}
-
-	err = CreateTables(DBInstance.DB)
-	if err != nil {
-		return fmt.Errorf("error creating tables: %v", err)
-	}
-	if err := AddDefaultCategories(DBInstance.DB); err != nil {
-		return err
-	}
-
-	return nil
+	return db, nil
 }
 
 func CreateTables(db *sql.DB) error {

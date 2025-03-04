@@ -27,7 +27,7 @@ func readServerConfig() (serverConfig, error) {
 		}
 		return fallback
 	}
-	c := serverConfig{value("FORUM_ADDR", ":8080"), value("TLS_CERT_FILE", "HTTPS/server.crt"), value("TLS_KEY_FILE", "HTTPS/server.key")}
+	c := serverConfig{value("FORUM_ADDR", ":8080"), value("TLS_CERT_FILE", ".local/server.crt"), value("TLS_KEY_FILE", ".local/server.key")}
 	_, port, err := net.SplitHostPort(c.address)
 	n, portErr := strconv.Atoi(port)
 	if err != nil || portErr != nil || n < 0 || n > 65535 {

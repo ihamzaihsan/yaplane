@@ -12,7 +12,7 @@ import (
 
 func main() {
 	email := flag.String("email", "", "existing account email to promote")
-	path := flag.String("db", "Forum.db", "existing SQLite database path")
+	path := flag.String("db", database.DatabasePath(), "existing SQLite database path")
 	flag.Parse()
 	if strings.TrimSpace(*email) == "" {
 		log.Fatal("Provide -email for an existing registered account")
