@@ -1,0 +1,26 @@
+services:
+  forum:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile
+    ports:
+      - "127.0.0.1:${HOST_PORT:-8080}:8080"
+    environment:
+      DATABASE_PATH: /data/forum.db
+      TLS_CERT_FILE: /app/HTTPS/server.crt
+      TLS_KEY_FILE: /app/HTTPS/server.key
+      FORUM_PREMODERATE: "${FORUM_PREMODERATE:-false}"
+      OAUTH_BASE_URL: "${OAUTH_BASE_URL:-https://localhost:8080}"
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID:-}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET:-}"
+      GITHUB_CLIENT_ID: "${GITHUB_CLIENT_ID:-}"
+      GITHUB_CLIENT_SECRET: "${GITHUB_CLIENT_SECRET:-}"
+    volumes:
+      - forum-data:/data
+      - forum-uploads:/app/static/uploads
+    restart: unless-stopped
+    stop_grace_period: 15s
+
+volumes:
+  forum-data:
+  forum-uploads:
