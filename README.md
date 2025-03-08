@@ -4,6 +4,12 @@ A full-stack discussion forum built with **Go, SQLite, and server-rendered HTML*
 
 The project demonstrates HTTP handler development, session authentication, relational data modeling, authorization, and transactional persistence. One Go server serves the pages, static assets, and forum endpoints.
 
+## Preview
+
+![Yaplane Community in dark mode with topic filters, fictional discussions, reactions, and signed-in navigation](docs/screenshots/yaplane-community.png)
+
+The running application in dark mode, signed in with a fictional demo account. See [Run the fictional demo](#run-the-fictional-demo) to explore this populated forum locally.
+
 ## Key features
 
 - **Discussions:** posts with multiple topics, optional image attachments, comments, and likes/dislikes on posts and comments.
@@ -12,7 +18,7 @@ The project demonstrates HTTP handler development, session authentication, relat
 - **Accounts:** email/password registration and login, optional Google/GitHub sign-in, profiles, bcrypt password hashing, and expiring sessions.
 - **Moderation:** moderator requests, staff approval queues, moderator reports, administrator replies, role management, and managed topics.
 - **Request protection:** HTTPS, Secure/HttpOnly/SameSite cookies, same-origin checks for mutations, rate limiting, and server timeouts.
-- **Interface:** responsive layouts, topic filters, local SVG icons, labelled forms, and keyboard focus indicators.
+- **Interface:** responsive layouts, topic filters, local SVG icons, labelled forms, keyboard focus indicators, and a dark-mode toggle matching the system preference until a choice is saved locally.
 
 ## Technology stack
 
@@ -26,17 +32,67 @@ The project demonstrates HTTP handler development, session authentication, relat
 
 The frontend needs no framework, npm install, or build step. Pages use navigation and form submissions; JavaScript handles reaction requests and checks notification counts every 15 seconds while the inbox is visible. SQLite transactions enforce permissions and content updates, and database triggers persist notifications with the corresponding reactions/comments. A single database connection serializes writes.
 
-## Run locally
+## Run the standard app
 
-Install Docker with Compose support and start Docker. Run these commands from the repository root. For a populated demo, use **Start with demo content** instead of this first startup:
+Install Docker Desktop or Docker Engine with Compose and start Docker. Run these steps from the repository root. The standard app uses HTTPS on port **8080**. For a populated forum, follow [Run the fictional demo](#run-the-fictional-demo) instead.
 
-```sh
-docker compose up --build -d
+**Git Bash on Windows:**
+
+```bash
+if [ ! -f .env ]; then cp .env.example .env; fi
+notepad.exe .env
+# Set HOST_PORT=8080 and OAUTH_BASE_URL=https://localhost:8080.
+# Set both GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to enable Google.
+# Set both GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET to enable GitHub.
+# Leave both values empty for any unused provider. Save and close Notepad.
+docker compose build
+docker compose up -d --force-recreate forum
 ```
 
-Open **[https://localhost:8080](https://localhost:8080)** and register an account. The image generates a self-signed localhost certificate; your browser will ask you to accept it for local use.
+**PowerShell:**
+
+```powershell
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
+notepad.exe .env
+# Set HOST_PORT=8080 and OAUTH_BASE_URL=https://localhost:8080.
+# Set both GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to enable Google.
+# Set both GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET to enable GitHub.
+# Leave both values empty for any unused provider. Save and close Notepad.
+docker compose build
+docker compose up -d --force-recreate forum
+```
+
+Save these settings in `.env` before continuing past the editing step. Enter your own client ID and client secret for each provider you enable:
+
+```dotenv
+HOST_PORT=8080
+OAUTH_BASE_URL=https://localhost:8080
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+```
+
+Register the corresponding callback URL in each enabled provider application:
+
+```text
+https://localhost:8080/auth/google/callback
+https://localhost:8080/auth/github/callback
+```
+
+Previously exported shell variables override `.env`; clear any conflicting values before starting. Docker generates the development certificate during the image build, so this setup requires no local Go installation or separate certificate command.
+
+Open **[https://localhost:8080](https://localhost:8080)** and accept the self-signed certificate warning for local use. Register a local account or use a configured provider on the login or registration page. Local accounts work without provider credentials.
 
 The application creates an empty database and five default topics automatically. Separate Docker volumes preserve the database and uploaded images across restarts.
+
+After changing `.env`, apply the settings with:
+
+```sh
+docker compose up -d --force-recreate forum
+```
+
+Stop the app while keeping its data with:
 
 ```sh
 docker compose down
@@ -57,25 +113,41 @@ Reuse existing certificates on later starts. The generator refuses to overwrite 
 
 The native server uses **https://localhost:8080** and stores its database at `data/forum.db`. `DATABASE_PATH` changes database storage; `FORUM_ADDR` changes the native listener. Database files, generated certificates, and uploads are excluded from Git.
 
-## Start with demo content
+## Run the fictional demo
 
-The demo uses its own Compose project and volumes, keeping it separate from standard data. Stop the standard forum first with `docker compose down` to free port 8080, then run:
+The demo uses its own Compose project and volumes, keeping it separate from standard data. Run these steps from the repository root in order. Set port **8081** so the demo can run beside the standard app on port 8080.
 
-```sh
-docker compose -p yaplane-community-demo build
-docker compose -p yaplane-community-demo run --rm forum /app/seed-demo
-docker compose -p yaplane-community-demo up -d
-```
-
-**Git Bash on Windows:** use this version to prevent Git Bash from converting `/app/seed-demo` into a Windows path:
+**Git Bash on Windows:**
 
 ```bash
+if [ ! -f .env ]; then cp .env.example .env; fi
+notepad.exe .env
+# Set HOST_PORT=8081 and OAUTH_BASE_URL=https://localhost:8081.
+# Optionally configure both credentials for each OAuth provider.
+# Save and close Notepad before continuing.
 docker compose -p yaplane-community-demo build
+# First setup only: skip seeding if the demo database already exists.
 MSYS_NO_PATHCONV=1 docker compose -p yaplane-community-demo run --rm forum /app/seed-demo
 docker compose -p yaplane-community-demo up -d
 ```
 
-Open **https://localhost:8080**. The seed creates **5 fictional accounts, 15 posts, 30 replies, and 90 reactions**. Post reactions and comments also populate the notification inboxes.
+**PowerShell:**
+
+```powershell
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
+notepad.exe .env
+# Set HOST_PORT=8081 and OAUTH_BASE_URL=https://localhost:8081.
+# Optionally configure both credentials for each OAuth provider.
+# Save and close Notepad before continuing.
+docker compose -p yaplane-community-demo build
+# First setup only: skip seeding if the demo database already exists.
+docker compose -p yaplane-community-demo run --rm forum /app/seed-demo
+docker compose -p yaplane-community-demo up -d
+```
+
+Both setups read the same `.env`; set `HOST_PORT` and `OAUTH_BASE_URL` for the project you are starting or recreating. Clear any conflicting exported shell variables. For demo OAuth sign-in, register `https://localhost:8081/auth/google/callback` or `https://localhost:8081/auth/github/callback` with the corresponding provider. Docker generates the certificate automatically. The `MSYS_NO_PATHCONV=1` prefix prevents Git Bash from converting `/app/seed-demo` into a Windows path.
+
+Open **[https://localhost:8081](https://localhost:8081)** and accept the self-signed certificate warning for local use. The seed creates **5 fictional accounts, 15 posts, 30 replies, and 90 reactions**. Post reactions and comments also populate the notification inboxes.
 
 | Username | Sign-in email |
 | --- | --- |
@@ -89,7 +161,19 @@ Open **https://localhost:8080**. The seed creates **5 fictional accounts, 15 pos
 
 Browse topics, react to discussions, add a comment, then explore **Activity** and **Notifications**. Edit your own content to try the ownership controls. The homepage shows the latest ten posts; older discussions remain accessible through topic filters and personal activity.
 
-Seed before the first demo startup. The command refuses any existing database file and never overwrites it. On later starts, use `docker compose -p yaplane-community-demo up -d` without seeding again. Stop the demo with `docker compose -p yaplane-community-demo down`.
+Seed before the first demo startup. The command refuses any existing database file and never overwrites it. On later starts, keep `HOST_PORT=8081` and `OAUTH_BASE_URL=https://localhost:8081` in `.env` and use `docker compose -p yaplane-community-demo up -d` without seeding again. Use the same project name to reconnect to its existing volumes.
+
+After changing demo settings in `.env`, apply them with:
+
+```sh
+docker compose -p yaplane-community-demo up -d --force-recreate forum
+```
+
+Stop the demo while keeping its data with:
+
+```sh
+docker compose -p yaplane-community-demo down
+```
 
 For native Go, seed a new file and select it in PowerShell before starting:
 
