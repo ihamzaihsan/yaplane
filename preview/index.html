@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Explore Yaplane Community through a browser-only interactive preview with fictional discussions, reactions, and moderation.">
+    <title>Yaplane Community — Interactive preview</title>
+    <link rel="icon" href="./static/favicon.svg" type="image/svg+xml">
+    <script src="./static/theme.js"></script>
+    <link rel="stylesheet" href="./static/style.css">
+    <link rel="stylesheet" href="./preview.css">
+    <script type="module" src="./app.js"></script>
+</head>
+<body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header>
+        <a href="#/" class="brand" aria-label="Yaplane Community home"><span class="brand-mark" aria-hidden="true">y<span>•</span></span>yaplane<span class="brand-period">.</span></a>
+        <nav aria-label="Main navigation"><ul><li><a href="#/">Home</a></li><li id="member-links"></li></ul></nav>
+    </header>
+    <section class="preview-banner" aria-label="About this preview">
+        <div><strong>Interactive preview</strong><p>Fictional accounts. Changes stay in this browser. No real sign-in or shared data.</p></div>
+        <label for="viewer">Explore as<select id="viewer" disabled><option>Loading accounts…</option></select></label>
+        <button type="button" id="reset" class="preview-button" disabled>Reset demo</button>
+    </section>
+    <p id="storage-warning" class="storage-warning" role="status" hidden></p>
+    <div class="layout-container">
+        <aside id="sidebar" class="vertical-sidebar" aria-label="Community navigation"></aside>
+        <main id="content" tabindex="-1" class="main-content"><p>Loading the fictional community…</p></main>
+        <aside class="right-sidebar" aria-label="About the community">
+            <section class="community-note"><span class="eyebrow">OUR LITTLE CORNER</span><h2>Different minds.<br>Common ground.</h2><p>Share what you know. Ask what you don’t. Make someone’s day a little more interesting.</p><div class="note-footer">Stay curious. Stay kind.</div></section>
+            <p class="right-footer">Browser-only preview of the Go + SQLite forum.<br><a href="https://github.com/ihamzaihsan/yaplane" target="_blank" rel="noopener noreferrer">Explore the source on GitHub ↗</a></p>
+        </aside>
+    </div>
+    <p id="notice" class="preview-notice" role="status" aria-live="polite" hidden></p>
+    <noscript><p class="storage-warning">This interactive preview needs JavaScript. The original Go application renders its pages on the server.</p></noscript>
+</body>
+</html>
