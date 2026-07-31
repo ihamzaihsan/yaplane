@@ -1,8 +1,12 @@
 # Yaplane Community: Full Stack Discussion Forum
 
+**Live Demo:** [View the interactive preview](https://yaplane-static-preview.vercel.app)
+
 A full-stack discussion forum built with **Go, SQLite, and server-rendered HTML**, bringing categorized discussions, image uploads, account management, and community moderation into a responsive interface.
 
 The project demonstrates HTTP handler development, session authentication, relational data modeling, authorization, and transactional persistence. One Go server serves the pages, static assets, and forum endpoints.
+
+This branch also includes a [browser-only interactive preview](preview/README.md) with fictional accounts and local interactions. The preview simulates selected forum workflows; real authentication, shared data, and server-side permissions belong to the Go application.
 
 ## Preview
 
@@ -207,7 +211,7 @@ go vet ./...
 docker compose config --quiet
 ```
 
-Local verification covered clean and seeded HTTPS startup, demo login, discussion/topic pages, activity, notifications, database integrity, refusal to overwrite an existing seed file, Docker storage isolation, and persistence after restart. Automated test files are not included in the current tree. Live Google/GitHub provider sign-in and public deployment were not verified.
+Local verification covered clean and seeded HTTPS startup, demo login, discussion/topic pages, activity, notifications, database integrity, refusal to overwrite an existing seed file, Docker storage isolation, and persistence after restart. Automated test files are not included in the current tree. Live Google/GitHub provider sign-in and public deployment of the Go server were not verified. The browser-only preview was verified locally and on its public deployment in Chrome, including navigation, topic filters, local persistence, content editing, reactions, notifications, the simulated approval queue, image attachments, and responsive layouts.
 
 The upload limit currently applies to the entire 20 MiB multipart request. Rejected submissions can leave unused attachments, and deleting content does not remove its physical image file. See [image-upload-review.md](docs/image-upload-review.md) for these limitations. Development certificates are self-signed; public hosting requires trusted certificates. Rate limiting is in memory and uses the direct client IP.
 

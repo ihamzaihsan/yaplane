@@ -8,3 +8,6 @@
 /Forum.db
 /Forum.db-*
 /static/uploads/*
+/preview/dist/
+/.vercel/
+/.env*.local

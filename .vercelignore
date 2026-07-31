@@ -1,0 +1,16 @@
+# Upload only the files required to build the static preview.
+*
+!vercel.json
+!preview
+!preview/index.html
+!preview/app.js
+!preview/store.js
+!preview/preview.css
+!preview/build.mjs
+!static
+!static/style.css
+!static/theme.js
+!static/icons.svg
+!static/favicon.svg
+!database
+!database/demo.go
