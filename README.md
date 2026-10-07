@@ -115,14 +115,14 @@ The native server uses **https://localhost:8080** and stores its database at `da
 
 ## Run the fictional demo
 
-The demo uses its own Compose project and volumes, keeping it separate from standard data. Run these steps from the repository root in order. Set port **8081** so the demo can run beside the standard app on port 8080.
+The demo uses its own Compose project and volumes, keeping it separate from standard data. Both versions default to **https://localhost:8080** and use the same `.env`. The project name does not change the port. Stop the standard app with `docker compose down` before starting the demo on that port. Run these steps from the repository root in order.
 
 **Git Bash on Windows:**
 
 ```bash
 if [ ! -f .env ]; then cp .env.example .env; fi
 notepad.exe .env
-# Set HOST_PORT=8081 and OAUTH_BASE_URL=https://localhost:8081.
+# Set HOST_PORT=8080 and OAUTH_BASE_URL=https://localhost:8080.
 # Optionally configure both credentials for each OAuth provider.
 # Save and close Notepad before continuing.
 docker compose -p yaplane-community-demo build
@@ -136,7 +136,7 @@ docker compose -p yaplane-community-demo up -d
 ```powershell
 if (!(Test-Path .env)) { Copy-Item .env.example .env }
 notepad.exe .env
-# Set HOST_PORT=8081 and OAUTH_BASE_URL=https://localhost:8081.
+# Set HOST_PORT=8080 and OAUTH_BASE_URL=https://localhost:8080.
 # Optionally configure both credentials for each OAuth provider.
 # Save and close Notepad before continuing.
 docker compose -p yaplane-community-demo build
@@ -145,9 +145,9 @@ docker compose -p yaplane-community-demo run --rm forum /app/seed-demo
 docker compose -p yaplane-community-demo up -d
 ```
 
-Both setups read the same `.env`; set `HOST_PORT` and `OAUTH_BASE_URL` for the project you are starting or recreating. Clear any conflicting exported shell variables. For demo OAuth sign-in, register `https://localhost:8081/auth/google/callback` or `https://localhost:8081/auth/github/callback` with the corresponding provider. Docker generates the certificate automatically. The `MSYS_NO_PATHCONV=1` prefix prevents Git Bash from converting `/app/seed-demo` into a Windows path.
+Both setups read the same `.env`; set `HOST_PORT` and `OAUTH_BASE_URL` for the project you are starting or recreating. Clear any conflicting exported shell variables. For demo OAuth sign-in on the default port, register `https://localhost:8080/auth/google/callback` or `https://localhost:8080/auth/github/callback` with the corresponding provider. Docker generates the certificate automatically. The `MSYS_NO_PATHCONV=1` prefix prevents Git Bash from converting `/app/seed-demo` into a Windows path. To run both versions at once, use port 8081 for the demo and update its OAuth origin and callbacks as described in [running.md](docs/running.md#run-both-versions-together).
 
-Open **[https://localhost:8081](https://localhost:8081)** and accept the self-signed certificate warning for local use. The seed creates **5 fictional accounts, 15 posts, 30 replies, and 90 reactions**. Post reactions and comments also populate the notification inboxes.
+Open **[https://localhost:8080](https://localhost:8080)** and accept the self-signed certificate warning for local use. The seed creates **5 fictional accounts, 15 posts, 30 replies, and 90 reactions**. Post reactions and comments also populate the notification inboxes.
 
 | Username | Sign-in email |
 | --- | --- |
@@ -161,7 +161,7 @@ Open **[https://localhost:8081](https://localhost:8081)** and accept the self-si
 
 Browse topics, react to discussions, add a comment, then explore **Activity** and **Notifications**. Edit your own content to try the ownership controls. The homepage shows the latest ten posts; older discussions remain accessible through topic filters and personal activity.
 
-Seed before the first demo startup. The command refuses any existing database file and never overwrites it. On later starts, keep `HOST_PORT=8081` and `OAUTH_BASE_URL=https://localhost:8081` in `.env` and use `docker compose -p yaplane-community-demo up -d` without seeding again. Use the same project name to reconnect to its existing volumes.
+Seed before the first demo startup. The command refuses any existing database file and never overwrites it. On later starts, keep your chosen `HOST_PORT` and matching `OAUTH_BASE_URL` in `.env` and use `docker compose -p yaplane-community-demo up -d` without seeding again. Use the same project name to reconnect to its existing volumes.
 
 After changing demo settings in `.env`, apply them with:
 
