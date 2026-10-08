@@ -1,6 +1,6 @@
 # Yaplane Community: Full Stack Discussion Forum
 
-**Live Demo:** [View the interactive preview](https://yaplane-static-preview.vercel.app)
+**Live Demo:** [View the interactive preview](https://yaplane-self.vercel.app)
 
 A full-stack discussion forum built with **Go, SQLite, and server-rendered HTML**, bringing categorized discussions, image uploads, account management, and community moderation into a responsive interface.
 

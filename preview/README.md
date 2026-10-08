@@ -15,6 +15,12 @@ Open `http://localhost:4173`. Python 3 is used only as a local file server; any 
 
 The build copies only the preview and required frontend assets into `preview/dist`, exports the existing fictional fixture, and excludes backend source, certificates, database files, and private configuration. Generated output is ignored by Git.
 
+## Vercel deployment
+
+The Vercel configuration and browser preview are maintained on the `demo` branch. Deploy this branch to the separate Vercel project **`yaplane`**, available at [yaplane-self.vercel.app](https://yaplane-self.vercel.app/). The `master` branch contains the Go application without this preview deployment configuration.
+
+`vercel.json` builds with `node preview/build.mjs` and publishes `preview/dist`. `.vercelignore` limits deployment uploads to the preview's required source files. Confirm the linked project is `yaplane` before deploying; `yaplane-live` is a separate application.
+
 ## Available interactions
 
 - Browse 15 fictional discussions, 30 comments, and 90 seeded reactions; filter discussions by topic.
