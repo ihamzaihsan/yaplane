@@ -17,7 +17,7 @@ The build copies only the preview and required frontend assets into `preview/dis
 
 ## Vercel deployment
 
-The Vercel configuration and browser preview are maintained on the `demo` branch. Deploy this branch to the separate Vercel project **`yaplane`**, available at [yaplane-self.vercel.app](https://yaplane-self.vercel.app/). The `master` branch contains the Go application without this preview deployment configuration.
+The Vercel configuration and browser preview are maintained on the `static-interactive-preview` branch. Deploy this branch to the separate Vercel project **`yaplane`**, available at [yaplane-self.vercel.app](https://yaplane-self.vercel.app/). The `master` branch contains the Go application without this preview deployment configuration.
 
 `vercel.json` builds with `node preview/build.mjs` and publishes `preview/dist`. `.vercelignore` limits deployment uploads to the preview's required source files. Confirm the linked project is `yaplane` before deploying; `yaplane-live` is a separate application.
 
